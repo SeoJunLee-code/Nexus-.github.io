@@ -1,0 +1,241 @@
+{
+ "sources": [
+  {
+   "file": "data_raw/h1_problem_rows.json",
+   "sha256": "76663d7ea952523ebaf857833b5513536d1ce55f9852fa8d9afdb690f8989500",
+   "bytes": 98201,
+   "role": "H1 문제별 집계 (jsonl 에서 생성)",
+   "project": "h1",
+   "committed": true
+  },
+  {
+   "file": "data_raw/h1v2_gsm8k_LNA_1.5B_t1024.jsonl",
+   "sha256": "d11351b2ad757f62d85fc828bea6038e2e22b56644e10bcddfa78d108727e0a3",
+   "bytes": 103469,
+   "role": "H1 원자료 (문제당 16개 샘플)",
+   "project": "h1",
+   "committed": false,
+   "note": "로컬 전용. 저장소에는 h1_problem_rows.json 만 올림"
+  },
+  {
+   "file": "data_raw/h1v2_gsm8k_LNA_3B_t1024.jsonl",
+   "sha256": "88abfe7518b6adccdcc7bbe739576258bcbc5c73392623a6be05911f6a2e8c03",
+   "bytes": 103025,
+   "role": "H1 원자료 (문제당 16개 샘플)",
+   "project": "h1",
+   "committed": false,
+   "note": "로컬 전용. 저장소에는 h1_problem_rows.json 만 올림"
+  },
+  {
+   "file": "data_raw/h1v2_math500_L34_1.5B_t1024.jsonl",
+   "sha256": "da8060ed895584d87ccd43ef1e5b7783c85d7dfd12a7fb702c097e33da61ea10",
+   "bytes": 119990,
+   "role": "H1 원자료 (문제당 16개 샘플)",
+   "project": "h1",
+   "committed": false,
+   "note": "로컬 전용. 저장소에는 h1_problem_rows.json 만 올림"
+  },
+  {
+   "file": "data_raw/h1v2_math500_L34_3B_t1024.jsonl",
+   "sha256": "26dbfe3f6f879e8adaa9e62ed7109d9a61af2441bda61cff03c7dc2a295f30ab",
+   "bytes": 120471,
+   "role": "H1 원자료 (문제당 16개 샘플)",
+   "project": "h1",
+   "committed": false,
+   "note": "로컬 전용. 저장소에는 h1_problem_rows.json 만 올림"
+  },
+  {
+   "file": "data_raw/analysis_phase1c.json",
+   "sha256": "c07f5358be32e88b0c51475e8baccd6b1b99942c9707ade3cc8bbeb53132c2eb",
+   "bytes": 184584,
+   "role": "Paper 5 Phase 1c 분석 결과",
+   "project": "paper5",
+   "committed": true,
+   "drive_size": 184584,
+   "size_match_drive": true
+  },
+  {
+   "file": "data_raw/analysis_phase1d.json",
+   "sha256": "cd6b2bcd566109c89452a8ddf0d205bea17e091d2bea21bb8c44ab87e392f4e9",
+   "bytes": 92288,
+   "role": "Paper 5 Phase 1d 분석 결과",
+   "project": "paper5",
+   "committed": true,
+   "drive_size": 92288,
+   "size_match_drive": true
+  },
+  {
+   "file": "data_raw/analysis_phase1e.json",
+   "sha256": "3178da6fbd8a2f60dcdc512b56bb97b635b7073bd2a992f262e06a5a5013655a",
+   "bytes": 37371,
+   "role": "Paper 5 Phase 1e 분석 결과",
+   "project": "paper5",
+   "committed": true,
+   "drive_size": 37371,
+   "size_match_drive": true
+  },
+  {
+   "file": "data_raw/analysis_phase1f.json",
+   "sha256": "84e95dcfcc5172619da87b9fc2caa4654c9707d2d15a8227e2153e6a2daa0c73",
+   "bytes": 29100,
+   "role": "Paper 5 Phase 1f 분석 결과",
+   "project": "paper5",
+   "committed": true,
+   "drive_size": 29100,
+   "size_match_drive": true
+  },
+  {
+   "file": "data_raw/analysis_phase1g.json",
+   "sha256": "8660e9bf0f1ed0cfcc9c1bd169f731e0dcde06962bf2bd1f930e202db1b7e7f2",
+   "bytes": 12317,
+   "role": "Paper 5 Phase 1g 분석 결과",
+   "project": "paper5",
+   "committed": true,
+   "drive_size": 12317,
+   "size_match_drive": true
+  },
+  {
+   "file": "data_raw/analysis_phase1h.json",
+   "sha256": "14e4c7d29c1da6e768dd00e73b841ed084187fdc609c1ef8efe3ffc54d191159",
+   "bytes": 17649,
+   "role": "Paper 5 Phase 1h 분석 결과",
+   "project": "paper5",
+   "committed": true,
+   "drive_size": 17649,
+   "size_match_drive": true
+  },
+  {
+   "file": "data_raw/analysis_phase1i.json",
+   "sha256": "7b15e4fdc2b8e7eb7a41330b6d5368afeae8bbe0dcedf78ab102b571b4edb3e3",
+   "bytes": 10156,
+   "role": "Paper 5 Phase 1i 분석 결과",
+   "project": "paper5",
+   "committed": true,
+   "drive_size": 10156,
+   "size_match_drive": true
+  }
+ ],
+ "code": [
+  {
+   "file": "code/H1_STEP4_cell.py",
+   "sha256": "ada83031c318de53714ebf96039f07706c23240e6853ae971860996f00ad6fdb",
+   "bytes": 22404,
+   "drive_size": 22404,
+   "size_match_drive": true
+  },
+  {
+   "file": "code/Paper5_Phase1i_cell.py",
+   "sha256": "2c69b2d3640dc8f04a92c2598980961e47fa8365208ac4da17d0a7df01ddc552",
+   "bytes": 26973,
+   "drive_size": 26973,
+   "size_match_drive": true
+  },
+  {
+   "file": "code/Paper5_Phase1j_cell.py",
+   "sha256": "fdb3eb13b0165306601dfe579f0bc8cb949b3b6ee9341a5b78ba97193ddaef22",
+   "bytes": 4585,
+   "drive_size": 4585,
+   "size_match_drive": true
+  }
+ ],
+ "drive_only_code": [
+  {
+   "title": "Paper5_Phase1b_cell.py",
+   "project": "paper5",
+   "phase": "1b",
+   "kind": "code",
+   "created": "2026-09-24T04:54:20.870Z",
+   "modified": "2026-09-24T04:54:20.870Z",
+   "size": 35088
+  },
+  {
+   "title": "Paper5_Phase1c_cell.py",
+   "project": "paper5",
+   "phase": "1c",
+   "kind": "code",
+   "created": "2026-09-24T13:24:26.563Z",
+   "modified": "2026-09-24T13:24:26.563Z",
+   "size": 37629
+  },
+  {
+   "title": "Paper5_Phase1d_cell.py",
+   "project": "paper5",
+   "phase": "1d",
+   "kind": "code",
+   "created": "2026-09-24T13:53:11.522Z",
+   "modified": "2026-09-24T13:53:11.522Z",
+   "size": 12105
+  },
+  {
+   "title": "Paper5_Phase1e_cell.py",
+   "project": "paper5",
+   "phase": "1e",
+   "kind": "code",
+   "created": "2026-09-29T08:26:11.971Z",
+   "modified": "2026-09-29T08:26:11.971Z",
+   "size": 29631
+  },
+  {
+   "title": "Paper5_Phase1f_cell.py",
+   "project": "paper5",
+   "phase": "1f",
+   "kind": "code",
+   "created": "2026-09-29T15:29:17.988Z",
+   "modified": "2026-09-29T15:29:17.988Z",
+   "size": 24163
+  },
+  {
+   "title": "Paper5_Phase1g_cell.py",
+   "project": "paper5",
+   "phase": "1g",
+   "kind": "code",
+   "created": "2026-09-30T14:03:18.693Z",
+   "modified": "2026-09-30T14:03:18.693Z",
+   "size": 21580
+  },
+  {
+   "title": "Paper5_Phase1h_cell.py",
+   "project": "paper5",
+   "phase": "1h",
+   "kind": "code",
+   "created": "2026-10-01T15:05:18.806Z",
+   "modified": "2026-10-01T15:05:18.806Z",
+   "size": 27319
+  }
+ ],
+ "verify_1i": {
+  "ok": true,
+  "computed_rstrip_sha256": "83fa18eb4167d10796d9776efb246948b799367c28bd2e2dbeb4e2905a9bc538",
+  "recorded_in_1j": "83fa18eb4167d10796d9776efb246948b799367c28bd2e2dbeb4e2905a9bc538",
+  "file_sha256": "2c69b2d3640dc8f04a92c2598980961e47fa8365208ac4da17d0a7df01ddc552",
+  "method": "sha256(src.rstrip().encode()) — 1j 로더가 실행 전에 확인하는 방식과 같음"
+ },
+ "prereg": {
+  "1f": {
+   "sha256": "2719124034e5826dc7704c80b1de33e2e65ac1c77dc90c31af3e617b4d036f3a",
+   "src": "analysis_phase1f.json",
+   "path": "prereg_sha",
+   "note": "PREREG 원문은 이 저장소에 없음 — 해시만 결과 파일에 기록됨"
+  },
+  "1j": {
+   "text": "1j | 주 조건: run_confirm_det, depth0, 고리통제, k in {8,32}. resk(k 평균을 뺀 maxQ)와 kxd(같은 k끼리) 두 값의 95% CI(run 부트스트랩) 하한이 모두 0.5 초과이면 '잔여 신호 검출', 아니면 '검출되지 않음(부재의 증명이 아님)'. 그 밖의 조건(ε d0, det d2, ε d2)은 탐색적이며 주장 근거로 쓰지 않는다. k별 run 20개씩 40개라 CI 반폭이 약 0.1이므로 약 0.6 미만의 효과는 구분하지 못한다.",
+   "sha256": "58b3408e4e5c168f089ec3d6cbbe4b694beacb34472832a51527c827009ec114",
+   "sha12": "58b3408e4e5c",
+   "keep_k": [
+    8,
+    32
+   ],
+   "src_name": "Paper5_Phase1i_cell.py",
+   "src_sha_recorded": "83fa18eb4167d10796d9776efb246948b799367c28bd2e2dbeb4e2905a9bc538",
+   "method": "hashlib.sha256(PREREG.encode()).hexdigest()[:12] — Paper5_Phase1j_cell.py 와 같은 식"
+  }
+ },
+ "builder": {
+  "file": "build_data.py",
+  "sha256": "a7f8433d03df46f91169d9bbaf09f9f32b891548513152d040cc6990f7352da0"
+ },
+ "manifest": {
+  "file": "data_raw/drive_manifest.json",
+  "retrieved": "2026-10-07"
+ }
+}

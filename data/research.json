@@ -1,0 +1,115 @@
+{
+ "projects": [
+  {
+   "id": "h1",
+   "title": "H1 · 다수결 역효과(Backfire)",
+   "title_en": "Majority-vote backfire",
+   "question": "같은 수학 문제를 16번 풀게 하고 다수결로 답을 고르면, 정답이 섞여 나오는 문제에서 다수결이 오히려 틀리는 경우가 절반을 넘는가?",
+   "status": {
+    "code": "falsified",
+    "label": "반증됨",
+    "why": "원본 판정 규칙으로 4개 조건 모두 'H1 REFUTED' (backfire 95% CI 상한 < 0.50)"
+   },
+   "link": "h1/",
+   "tags": [
+    "Reasoning",
+    "Self-consistency",
+    "Falsified"
+   ]
+  },
+  {
+   "id": "paper5",
+   "title": "Paper 5 · 내부 신호로 성공 예측하기",
+   "title_en": "Can an agent's maxQ monitor its own success?",
+   "question": "에이전트가 처음 5걸음 동안 보인 maxQ 로, 그 뒤 열쇠(key)에 도달할지 예측할 수 있는가 — 그리고 그 신호는 정말 '자신감'인가, 학습 정도(k)일 뿐인가?",
+   "status": {
+    "code": "exploratory",
+    "label": "탐색적",
+    "why": "가장 최근 완료 단계(1i)는 사전 고정 기록이 없는 분석. 다음 단계 1j 는 사전 고정·실행 전."
+   },
+   "link": "paper5/",
+   "tags": [
+    "Monitoring",
+    "RL",
+    "Self-falsification",
+    "PREREG"
+   ]
+  }
+ ],
+ "built": "2026-10-07T03:40:44Z",
+ "counts": {
+  "projects": 2,
+  "phases_with_data": 7,
+  "stats": 2155,
+  "stats_with_ci": 1919,
+  "source_files": 12
+ },
+ "highlights": {
+  "expect_1e": {
+   "id": "p5.1e.folders/run_stochastic_eps0.1/groups/depth0_lf/auroc/S1a_maxq_last|lay×dist",
+   "v": 0.801887,
+   "lo": 0.675793,
+   "hi": 0.912845
+  },
+  "repro_1f_det": {
+   "id": "p5.1f.cond/det/tests/H1",
+   "v": 0.82,
+   "lo": 0.711315,
+   "hi": 0.90461
+  },
+  "repro_1f_eps": {
+   "id": "p5.1f.cond/eps/tests/H1",
+   "v": 0.861017,
+   "lo": 0.748919,
+   "hi": 0.933855
+  },
+  "unexp_1g_lxd": {
+   "id": "p5.1g.B/run_multidepth_v2|d0|lf/lxd",
+   "v": 0.680359,
+   "lo": 0.606286,
+   "hi": 0.756109
+  },
+  "unexp_1g_kxd": {
+   "id": "p5.1g.B/run_multidepth_v2|d0|lf/kxd",
+   "v": 0.48899,
+   "lo": 0.384423,
+   "hi": 0.596408
+  },
+  "rev_1h_total": {
+   "id": "p5.1h.B/run_multidepth_v2|d0|lf/total",
+   "v": 0.680359,
+   "lo": 0.596267,
+   "hi": 0.762385
+  },
+  "rev_1h_kscore": {
+   "id": "p5.1h.B/run_multidepth_v2|d0|lf/kscore",
+   "v": 0.727337,
+   "lo": 0.645017,
+   "hi": 0.803708
+  },
+  "fals_1i_total": {
+   "id": "p5.1i.B/run_confirm_det|d0|lf/total",
+   "v": 0.82,
+   "lo": 0.709926,
+   "hi": 0.902638
+  },
+  "fals_1i_kscore": {
+   "id": "p5.1i.B/run_confirm_det|d0|lf/kscore",
+   "v": 0.787619,
+   "lo": 0.677584,
+   "hi": 0.875581
+  },
+  "fals_1i_resk": {
+   "id": "p5.1i.B/run_confirm_det|d0|lf/resk",
+   "v": 0.597143,
+   "lo": 0.503255,
+   "hi": 0.687941
+  },
+  "fals_1i_kxd": {
+   "id": "p5.1i.B/run_confirm_det|d0|lf/kxd",
+   "v": 0.567024,
+   "lo": 0.445942,
+   "hi": 0.652932
+  }
+ }
+}

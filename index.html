@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="ko" class="no-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NEXUS — AI Research Portfolio</title>
+<meta name="description" content="NEXUS: 실제 AI 실험(H1 다수결 역효과, Paper 5 내부 신호 모니터링)의 질문·실험·반증·재현 정보를 원자료에서 직접 보여 주는 연구 포트폴리오.">
+<meta name="theme-color" content="#03050d">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+KR:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/nexus.css">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("nexus-theme")||"dark"}catch(e){document.documentElement.dataset.theme="dark"}</script>
+</head>
+<body data-root="./" data-page="home">
+<a class="skip" href="#main">본문으로 건너뛰기</a>
+<header id="nav"><noscript><nav class="wrap"><a href="./">NEXUS</a> · <a href="h1/">H1</a> · <a href="paper5/">Paper 5</a> · <a href="statistics/">Statistics</a> · <a href="reproduce/">Reproduce</a> · <a href="log/">Log</a></nav></noscript></header>
+
+<main id="main">
+  <!-- HERO -->
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="hero-canvas" aria-hidden="true"><canvas id="hero-canvas"></canvas></div>
+    <div class="wrap">
+      <div class="hero-left">
+        <div class="kicker">AI Research Portfolio</div>
+        <h1 class="h-display" id="hero-title">Exploring<br>Intelligence<br>Through<br>Experiments</h1>
+        <p class="lead">질문하고, 실험하고, 스스로 반증한 기록을 그대로 공개합니다.<br>이 사이트의 모든 연구 수치는 원자료 JSON 에서 자동으로 뽑혔고, 누르면 출처가 열립니다.</p>
+        <div class="rule"></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <a class="btn primary" href="#research">Explore Research <span aria-hidden="true">→</span></a>
+          <button class="btn ghost" type="button" id="hero-evidence">Evidence Mode 켜기</button>
+        </div>
+      </div>
+      <div class="hero-right" id="hero-cards" aria-label="대표 연구"></div>
+    </div>
+    <div class="hero-stats" id="hero-stats" aria-label="사이트 요약 수치"></div>
+    <div class="scroll-hint" aria-hidden="true">SCROLL</div>
+  </section>
+
+  <!-- FEATURED -->
+  <section class="section" id="research" aria-labelledby="feat-title">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div><div class="kicker">Featured Research</div><h2 class="h-section" id="feat-title">두 개의 질문, 끝까지 따라간 기록</h2>
+        <p>결과가 좋든 나쁘든 판정 규칙대로 적었습니다. 반증된 가설도 정상적인 연구 결과로 표시합니다.</p></div>
+      </div>
+      <div class="grid g2" id="feat-cards"></div>
+    </div>
+  </section>
+
+  <!-- LAB -->
+  <section class="section" id="lab" aria-labelledby="lab-title" style="padding-top:20px">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div><div class="kicker v">Interactive Research Visualization</div><h2 class="h-section" id="lab-title">신호 분해 실험실 — maxQ 는 무엇을 알고 있었나</h2>
+        <p>Paper 5 · Phase 1i 의 실제 분해 결과(analysis_phase1i.json)를 조건별로 바꿔 봅니다. 왼쪽에서 조건을 고르면 가운데 공간에서 학습 설정 k 별 위치가, 오른쪽에서 AUROC 분해가 바뀝니다.</p></div>
+      </div>
+      <div class="panel lab reveal" id="lab-panel">
+        <div class="ctrl" id="lab-ctrl"></div>
+        <div class="stage"><div class="stage-top"><span>성공률 ↑</span><span id="lab-stage-key"></span></div><canvas id="lab-canvas" role="img" aria-label="학습 설정 k 별 평균 maxQ(가로)와 성공률(세로). 원 크기는 에피소드 수."></canvas><div class="stage-cap" id="lab-cap"></div></div>
+        <div class="lab-out" id="lab-out"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MAP / TIMELINE / STATS -->
+  <section class="section" id="map" aria-labelledby="map-title" style="padding-top:20px">
+    <div class="wrap">
+      <div class="grid g-12-5" style="grid-template-columns:minmax(0,1.35fr) minmax(0,.9fr) minmax(0,.85fr)">
+        <div class="panel reveal">
+          <div class="panel-title"><div><h3 id="map-title">연구 네트워크 <span class="faint" style="font-weight:400">(Research Graph)</span></h3><div class="sub">노드 = 연구·개념·방법, 선 = 실제로 이어진 관계</div></div></div>
+          <div id="graph"></div>
+        </div>
+        <div class="panel reveal">
+          <div class="panel-title"><div><h3>Research Timeline</h3><div class="sub">파일 생성·결과 시각 기준</div></div><a class="link-arrow" href="log/">전체 →</a></div>
+          <ul class="tl" id="tl-mini"></ul>
+        </div>
+        <div class="panel reveal">
+          <div class="panel-title"><div><h3>통계 요약</h3><div class="sub">statistics.json</div></div><a class="link-arrow" href="statistics/">통계표 →</a></div>
+          <div id="stat-summary"></div>
+        </div>
+      </div>
+      <style>@media (max-width:1080px){#map .grid{grid-template-columns:minmax(0,1fr)!important}}</style>
+    </div>
+  </section>
+
+  <!-- MISSION LOG -->
+  <section class="section" id="mission" aria-labelledby="mission-title" style="padding-top:10px">
+    <div class="wrap">
+      <div class="section-head reveal"><div><div class="kicker">Research Timeline</div><h2 class="h-section" id="mission-title">The Journey — 미션 로그</h2>
+        <p>질문 · 실험 · 예상 밖 결과 · 수정 · 반증 · 다음 질문. 점을 누르면 그 사건의 내용과 출처가 열립니다.</p></div>
+        <div class="seg" role="group" aria-label="타임라인 필터" id="tl-filter"><button aria-pressed="true" data-f="all">All</button><button aria-pressed="false" data-f="h1">H1</button><button aria-pressed="false" data-f="paper5">Paper 5</button></div>
+      </div>
+      <div id="htl" class="reveal"></div>
+    </div>
+  </section>
+
+  <!-- FAILURE CHAIN -->
+  <section class="section" id="chain" aria-labelledby="chain-title">
+    <div class="wrap">
+      <div class="section-head reveal"><div><div class="kicker v">Failure as a Feature</div><h2 class="h-section" id="chain-title">기대에서 자기 반증까지 — Paper 5 의 실제 경로</h2>
+        <p>하이라이트만 남기지 않습니다. 각 단계의 수치는 해당 단계의 결과 파일에서 직접 읽습니다.</p></div></div>
+      <div class="chain reveal" id="chain-steps"></div>
+    </div>
+  </section>
+
+  <!-- VERIFICATION -->
+  <section class="section" id="verify" aria-labelledby="verify-title" style="padding-top:10px">
+    <div class="wrap">
+      <div class="grid g2">
+        <div class="panel reveal">
+          <div class="kicker">Verification</div>
+          <h2 class="h-section" id="verify-title" style="margin:8px 0 14px">숫자는 손으로 옮기지 않는다</h2>
+          <p class="muted">이 사이트의 연구 수치는 <code>build_data.py</code> 가 <code>data_raw/</code> 의 원자료에서 뽑아 <code>data/*.json</code> 으로 만든 것입니다. 원자료를 바꾸고 다시 실행하면 사이트가 따라 바뀝니다. 값이 없으면 추정하지 않고 <span class="pending">DATA PENDING</span> 으로 표시합니다.</p>
+          <div id="verify-list"></div>
+        </div>
+        <div class="panel reveal">
+          <div class="panel-title"><div><h3>Reproduce <span class="faint" style="font-weight:400">(재현)</span></h3><div class="sub">모든 수치는 아래 명령으로 다시 만들 수 있습니다</div></div><a class="link-arrow" href="reproduce/">재현 정보 →</a></div>
+          <div class="code-block"><span class="c"># 1. 사이트 폴더로 이동</span>
+cd nexus
+<span class="c"># 2. 원자료 → data/*.json (표준 라이브러리만 사용)</span>
+python3 build_data.py
+<span class="c"># 3. 커밋된 data/ 가 원자료와 같은지 확인</span>
+python3 build_data.py --check
+<span class="c"># 4. 테스트 (H1 계산식 원본 대조 · 숫자 하드코딩 검사)</span>
+python3 tests/test_build.py
+<span class="c"># 5. 로컬 미리보기</span>
+python3 -m http.server 8000</div>
+          <hr class="divider">
+          <div class="panel-title" style="margin-bottom:8px"><h3>로그 <span class="faint" style="font-weight:400">(Research Log)</span></h3><a class="link-arrow" href="log/">전체 로그 →</a></div>
+          <div id="log-mini"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TOOLS -->
+  <section class="section-sm" aria-labelledby="tools-title">
+    <div class="wrap">
+      <h2 class="sr-only" id="tools-title">사이트 기능</h2>
+      <div class="grid g3 reveal" id="tools"></div>
+    </div>
+  </section>
+</main>
+
+<footer id="footer"></footer>
+<script src="assets/js/core.js" defer></script>
+<script src="assets/js/viz.js" defer></script>
+<script src="assets/js/components.js" defer></script>
+<script src="assets/js/lab.js" defer></script>
+<script src="assets/js/home.js" defer></script>
+</body>
+</html>

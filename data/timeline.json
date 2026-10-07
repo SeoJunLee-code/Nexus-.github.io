@@ -1,0 +1,194 @@
+{
+ "events": [
+  {
+   "date": "2026-09-11T15:01:34.465Z",
+   "project": "paper5",
+   "type": "question",
+   "title": "Paper 5 Phase 1 시작 — phase1_signals 폴더 생성",
+   "detail": "작업 시작 시점을 폴더 생성 시각으로 표시.",
+   "src": "drive_manifest.json · folders.phase1_signals",
+   "link": "paper5/#question",
+   "id": "ev00"
+  },
+  {
+   "date": "2026-09-15T15:00:18.280Z",
+   "project": "h1",
+   "type": "question",
+   "title": "H1 시작 — h1_results 폴더 생성",
+   "detail": "작업 시작 시점을 폴더 생성 시각으로 표시.",
+   "src": "drive_manifest.json · folders.h1_results",
+   "link": "h1/#question",
+   "id": "ev01"
+  },
+  {
+   "date": "2026-09-15T15:03:15.527Z",
+   "project": "h1",
+   "type": "experiment",
+   "title": "H1 1차 실행 — MATH-500 Level 5 · Qwen2.5-1.5B",
+   "detail": "파일명 기준 Level 5 문제로 첫 실행. 이 파일은 저장소에 없음(메타데이터만).",
+   "src": "drive_manifest.json · h1_math500_l5_Qwen2.5-1.5B.jsonl",
+   "link": "h1/#history",
+   "id": "ev02"
+  },
+  {
+   "date": "2026-09-18T05:17:21.995Z",
+   "project": "h1",
+   "type": "analysis",
+   "title": "진단 그림 생성 (h1_fig1_diagnosis.png)",
+   "detail": "v1 결과를 진단한 그림 파일. 그림 내용은 이 사이트에 옮기지 않음.",
+   "src": "drive_manifest.json · h1_fig1_diagnosis.png",
+   "link": "h1/#history",
+   "id": "ev03"
+  },
+  {
+   "date": "2026-09-18T05:20:07.500Z",
+   "project": "h1",
+   "type": "revision",
+   "title": "설계 수정 v2 — Level 3–4, 최대 1024 토큰",
+   "detail": "파일명이 h1 → h1v2, L5 → L34, t1024 로 바뀜. STEP 1 (MATH-500 · 1.5B) 실행.",
+   "src": "drive_manifest.json · H1_STEP4_cell.py PLAN",
+   "link": "h1/#history",
+   "id": "ev04"
+  },
+  {
+   "date": "2026-09-19T06:19:23.146Z",
+   "project": "h1",
+   "type": "experiment",
+   "title": "STEP 2 — GSM8K · 1.5B (대조군)",
+   "detail": "H1_STEP4_cell.py 의 PLAN 단계.",
+   "src": "drive_manifest.json · h1v2_gsm8k_LNA_1.5B_t1024.jsonl",
+   "link": "h1/#results",
+   "id": "ev05"
+  },
+  {
+   "date": "2026-09-19T11:37:05.799Z",
+   "project": "h1",
+   "type": "experiment",
+   "title": "STEP 3 — MATH-500 · 3B (확장)",
+   "detail": "H1_STEP4_cell.py 의 PLAN 단계.",
+   "src": "drive_manifest.json · h1v2_math500_L34_3B_t1024.jsonl",
+   "link": "h1/#results",
+   "id": "ev06"
+  },
+  {
+   "date": "2026-09-24T05:00:02.854Z",
+   "project": "h1",
+   "type": "experiment",
+   "title": "STEP 4 — GSM8K · 3B (확장 대조군)",
+   "detail": "H1_STEP4_cell.py 의 PLAN 단계.",
+   "src": "drive_manifest.json · h1v2_gsm8k_LNA_3B_t1024.jsonl",
+   "link": "h1/#results",
+   "id": "ev07"
+  },
+  {
+   "date": "2026-09-24T06:28:38.097Z",
+   "project": "h1",
+   "type": "falsification",
+   "title": "H1 판정: 반증됨",
+   "detail": "원본 판정 규칙으로 4개 조건 모두 'H1 REFUTED' (backfire 95% CI 상한 < 0.50)",
+   "src": "h1_problem_rows.json → build_data.py (원본 판정 규칙)",
+   "link": "h1/#results",
+   "id": "ev08"
+  },
+  {
+   "date": "2026-09-24T06:28:38.097Z",
+   "project": "h1",
+   "type": "next",
+   "title": "다음 질문",
+   "detail": "H1_STEP4_cell.py 에는 4단계 이후 계획이 기록되어 있지 않음 — 다음 질문은 아직 문서화되지 않음.",
+   "src": "H1_STEP4_cell.py",
+   "link": "h1/#next",
+   "id": "ev09"
+  },
+  {
+   "date": "2026-09-24T09:12:11.106Z",
+   "project": "paper5",
+   "type": "experiment",
+   "title": "Phase 1b 실행",
+   "detail": "노트북·코드 파일만 확인됨 (결과 JSON 은 이 저장소에 없음).",
+   "src": "drive_manifest.json",
+   "link": "paper5/#timeline",
+   "id": "ev10"
+  },
+  {
+   "date": "2026-09-25T05:46:57Z",
+   "project": "paper5",
+   "type": "experiment",
+   "title": "1c — ① 고리(재방문) 통제 · ② 확률 정책 로깅",
+   "detail": "신호 후보 24개를 표준 표본과 고리통제 표본에서 비교하고, 결정론 정책의 재방문-실패 관계를 진단.",
+   "src": "analysis_phase1c.json",
+   "link": "paper5/#phase-1c",
+   "id": "ev11"
+  },
+  {
+   "date": "2026-09-28T13:29:21Z",
+   "project": "paper5",
+   "type": "experiment",
+   "title": "1d — ③ 교란 통제",
+   "detail": "거리·레이아웃 층화로 '가까워서 성공'하는 효과를 걷어냄.",
+   "src": "analysis_phase1d.json",
+   "link": "paper5/#phase-1d",
+   "id": "ev12"
+  },
+  {
+   "date": "2026-09-30T13:49:40Z",
+   "project": "paper5",
+   "type": "revision",
+   "title": "1e — ④ 보강 분석",
+   "detail": "직접 행동(depth0) vs 플래너(depth2) 신호 차이, 1d 값 재현 점검.",
+   "src": "analysis_phase1e.json",
+   "link": "paper5/#phase-1e",
+   "id": "ev13"
+  },
+  {
+   "date": "2026-10-01T14:50:24.101Z",
+   "project": "paper5",
+   "type": "unexpected",
+   "title": "1g — ⑥ 진단",
+   "detail": "1i 코드 머리말 원문: “1g에서 k×dist(같은 k끼리 비교)는 거의 0.5”.",
+   "src": "analysis_phase1g.json",
+   "link": "paper5/#phase-1g",
+   "id": "ev14"
+  },
+  {
+   "date": "2026-10-01T15:18:31.340Z",
+   "project": "paper5",
+   "type": "experiment",
+   "title": "1f — ⑤ 사전 고정 확인 실험",
+   "detail": "새 run 60개로 사전 고정 가설 H1~H3 판정.",
+   "src": "analysis_phase1f.json",
+   "link": "paper5/#phase-1f",
+   "id": "ev15"
+  },
+  {
+   "date": "2026-10-02T03:16:55.362Z",
+   "project": "paper5",
+   "type": "revision",
+   "title": "1h — ⑦ 대조",
+   "detail": "maxQ 신호를 k(학습 설정) 성분과 나머지로 분해 — 1e 폴더.",
+   "src": "analysis_phase1h.json",
+   "link": "paper5/#phase-1h",
+   "id": "ev16"
+  },
+  {
+   "date": "2026-10-02T03:28:06.593Z",
+   "project": "paper5",
+   "type": "falsification",
+   "title": "1i — ⑧ 1f 분해 (자기 반증)",
+   "detail": "같은 분해를 1f 확인 실험 데이터에 적용. 주 조건 라벨(원문): “신호의 대부분이 k(학습 설정)로 설명됨 (같은 k 안에서는 seed 간·run 내 신호 없음)”",
+   "src": "analysis_phase1i.json",
+   "link": "paper5/#phase-1i",
+   "id": "ev17"
+  },
+  {
+   "date": "2026-10-02T03:43:02.151Z",
+   "project": "paper5",
+   "type": "next",
+   "title": "1j — PREREG 고정, 실행 전",
+   "detail": "k=2 를 빼고 학습된 모델(k=8, 32)끼리도 잔여 신호가 남는가? 판정 기준은 코드에 사전 고정됨.",
+   "src": "Paper5_Phase1j_cell.py",
+   "link": "paper5/#phase-1j",
+   "id": "ev18"
+  }
+ ]
+}

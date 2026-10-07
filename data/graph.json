@@ -1,0 +1,173 @@
+{
+ "nodes": [
+  {
+   "id": "nexus",
+   "label": "NEXUS",
+   "kind": "core",
+   "desc": "두 연구를 잇는 중심. 질문 → 실험 → 반증 → 다음 질문."
+  },
+  {
+   "id": "h1",
+   "label": "H1 · 다수결 역효과",
+   "kind": "project",
+   "status": "반증됨",
+   "link": "h1/",
+   "desc": "LLM 이 같은 수학 문제를 16번 풀 때 다수결이 오히려 틀리게 만드는가."
+  },
+  {
+   "id": "p5",
+   "label": "Paper 5 · 내부 신호",
+   "kind": "project",
+   "status": "탐색적",
+   "link": "paper5/",
+   "desc": "강화학습 에이전트의 maxQ 가 성공을 미리 알려 주는가, 그리고 그 신호는 무엇인가."
+  },
+  {
+   "id": "reasoning",
+   "label": "Reasoning",
+   "kind": "domain",
+   "desc": "MATH-500 · GSM8K 수학 추론 (Qwen2.5-Instruct 1.5B/3B)"
+  },
+  {
+   "id": "monitoring",
+   "label": "Monitoring",
+   "kind": "domain",
+   "desc": "에이전트 내부 값으로 실패를 미리 감지하려는 시도"
+  },
+  {
+   "id": "planning",
+   "label": "Planning",
+   "kind": "domain",
+   "desc": "depth0(직접 행동) vs depth2(플래너) 비교 — 1e"
+  },
+  {
+   "id": "learning",
+   "label": "Learning (k)",
+   "kind": "domain",
+   "desc": "학습 설정 k (k=2 는 거의 미학습) — 1h·1i 의 핵심 교란"
+  },
+  {
+   "id": "majority",
+   "label": "Majority vote",
+   "kind": "method",
+   "desc": "16개 샘플 중 최다 답 선택"
+  },
+  {
+   "id": "floor",
+   "label": "Arithmetic floor",
+   "kind": "method",
+   "desc": "비둘기집 원리로 피할 수 없는 backfire 의 하한"
+  },
+  {
+   "id": "auroc",
+   "label": "Stratified AUROC",
+   "kind": "method",
+   "desc": "레이아웃×거리 층 안에서만 비교한 AUROC"
+  },
+  {
+   "id": "loop",
+   "label": "Loop control",
+   "kind": "method",
+   "desc": "재방문이 없는 표본만 사용 — 동어반복 제거 (1c)"
+  },
+  {
+   "id": "confound",
+   "label": "Confound control",
+   "kind": "method",
+   "desc": "거리·레이아웃 층화 (1d)"
+  },
+  {
+   "id": "prereg",
+   "label": "PREREG",
+   "kind": "method",
+   "desc": "실행 전 판정 기준 고정 (1f, 1j)"
+  },
+  {
+   "id": "falsify",
+   "label": "Self-falsification",
+   "kind": "method",
+   "desc": "자기 결과를 분해해 반증 (1i)"
+  },
+  {
+   "id": "next",
+   "label": "1j (실행 전)",
+   "kind": "next",
+   "link": "paper5/#phase-1j",
+   "desc": "k=8/32 만으로 잔여 신호 검증 — 사전 고정, 아직 실행하지 않음"
+  }
+ ],
+ "edges": [
+  {
+   "source": "nexus",
+   "target": "h1"
+  },
+  {
+   "source": "nexus",
+   "target": "p5"
+  },
+  {
+   "source": "h1",
+   "target": "reasoning"
+  },
+  {
+   "source": "h1",
+   "target": "majority"
+  },
+  {
+   "source": "majority",
+   "target": "floor"
+  },
+  {
+   "source": "p5",
+   "target": "monitoring"
+  },
+  {
+   "source": "p5",
+   "target": "planning"
+  },
+  {
+   "source": "p5",
+   "target": "learning"
+  },
+  {
+   "source": "p5",
+   "target": "auroc"
+  },
+  {
+   "source": "auroc",
+   "target": "loop"
+  },
+  {
+   "source": "auroc",
+   "target": "confound"
+  },
+  {
+   "source": "p5",
+   "target": "prereg"
+  },
+  {
+   "source": "p5",
+   "target": "falsify"
+  },
+  {
+   "source": "falsify",
+   "target": "learning"
+  },
+  {
+   "source": "falsify",
+   "target": "next"
+  },
+  {
+   "source": "prereg",
+   "target": "next"
+  },
+  {
+   "source": "monitoring",
+   "target": "planning"
+  },
+  {
+   "source": "reasoning",
+   "target": "monitoring"
+  }
+ ]
+}
