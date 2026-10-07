@@ -16,7 +16,7 @@ H1(다수결 역효과)과 Paper 5(내부 신호 모니터링) 두 연구의 기
 
 ```
 nexus/
-├─ index.html            Home (연구 지도, 타임라인, 1i 분해 실험실, 실패 체인, 검증 목록)
+├─ index.html            Home (연구 목록·필터, 1i 분해 + 3D 증거 공간, THE JOURNEY, 연구 지도, 1c 실험 큐브·타일, 실패 체인, 검증)
 ├─ h1/                   H1 · 다수결 역효과
 ├─ paper5/               Paper 5 · 내부 신호로 성공 예측하기 (1c → 1j)
 ├─ statistics/           전체 통계표 (필터·정렬·검색·?q=·CSV·Compare)
@@ -24,13 +24,20 @@ nexus/
 ├─ log/                  연구 일지 (log/#ev17 처럼 항목별 앵커)
 ├─ 404.html
 ├─ assets/css/nexus.css  디자인 토큰(다크 기본 + 라이트), 컴포넌트, 인쇄 CSS
-├─ assets/js/            core(셸·Evidence·검색·차트) · viz(배경 캔버스) · components(그래프·타임라인) · lab · 페이지별 스크립트
+├─ assets/js/            core(셸·로딩 화면·Evidence·검색·차트) · viz(장식 캔버스) · viz3d(실데이터 3D 점구름·복셀·히트 타일) · components(지도·여정 타임라인) · lab · 페이지별 스크립트
 ├─ data/                 build_data.py 가 만든 JSON (사이트가 읽는 유일한 데이터)
 ├─ data_raw/             원자료 (analysis_phase1c–1i.json, h1_problem_rows.json, drive_manifest.json)
 ├─ code/                 원본 Colab 셀 (H1_STEP4, Paper5 1i, 1j) — Drive 원본과 바이트 수 일치
 ├─ build_data.py         원자료 → data/*.json (표준 라이브러리만 사용)
 └─ tests/test_build.py   검증 테스트
 ```
+
+## 시각화 메모
+
+- **장식과 데이터를 나눈다.** `viz.js` (히어로 구체, 카드·타임라인의 오브, 배경 입자)는 장식이며 수치를 담지 않습니다. `viz3d.js` 의 모든 점·복셀·칸은 `data/*.json` 의 값 하나이고, 마우스를 올리면 값과 CI, 누르면 출처가 열립니다.
+- **3D 증거 공간** (Home): 통계표의 AUROC(CI 있는 것) 전부. 가로 = AUROC, 세로 = CI 폭, 깊이 = 단계(1c–1i). 선택한 1i 조건의 분해 지표가 강조됩니다.
+- **1c 실험 큐브·타일** (Home): 신호 계열(8) × 통계(mean/std/last) × 폴더(4). 타일은 N=5 / N=10 / 차이. 색은 0.5 를 중심으로 갈라지는 척도(아래 = 보라·분홍, 0.5 = 남색, 위 = 하늘·노랑).
+- **로딩 화면**: 페이지가 실제로 요청한 `data/*.json` 의 진행률과 크기를 보여 줍니다. 세션의 첫 페이지에서만 인트로로 보이고, 이후에는 로딩이 0.35초를 넘을 때만 나타납니다. 8초가 지나면 무조건 닫히며, Esc 나 '건너뛰기' 로 바로 닫을 수 있습니다. 위쪽 타일 4개는 장식입니다.
 
 ## 데이터 다시 만들기 · 검사
 

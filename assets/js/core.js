@@ -35,13 +35,98 @@
   const cache = {};
   function load(name) {
     if (!cache[name]) {
+      loader.add(name);
       cache[name] = fetch(root + "data/" + name, { cache: "no-cache" }).then((r) => {
         if (!r.ok) throw new Error(name + " " + r.status);
-        return r.json();
-      });
+        const len = +r.headers.get("content-length") || 0;
+        return r.json().then((j) => { loader.ok(name, len); return j; });
+      }).catch((e) => { loader.err(name); throw e; });
     }
     return cache[name];
   }
+
+  // ---------------------------------------------------------------- loading screen
+  // Shows the real fetch progress of this page's data files. Full intro once per session; later pages only if loading takes > 0.35s.
+  const loader = (function () {
+    const el = document.getElementById("nx-loader");
+    const files = new Map();
+    const t0 = performance.now();
+    const first = document.documentElement.classList.contains("nx-first");
+    const MIN = first ? 1300 : 0;
+    let finished = !el, raf = 0, prog = 0;
+    const R = (sd) => () => ((sd = (sd * 1664525 + 1013904223) >>> 0) / 4294967296);
+    const STOPS = [[0, [26, 42, 122]], [0.35, [34, 120, 255]], [0.6, [34, 199, 255]], [0.82, [255, 242, 122]], [1, [255, 79, 216]]];
+    const ramp = (t) => { for (let i = 1; i < STOPS.length; i++) if (t <= STOPS[i][0]) { const [a, ca] = STOPS[i - 1], [b, cb] = STOPS[i], k = (t - a) / (b - a); return ca.map((v, j) => v + (cb[j] - v) * k); } return STOPS[STOPS.length - 1][1]; };
+    // four decorative 12×12 "ring" tiles that fill in as data arrives (no research values)
+    const tiles = el ? Array.from(el.querySelectorAll(".ld-tiles canvas")).map((cv, n) => {
+      const r = R(11 + n * 31), N = 12, cells = [];
+      const ox = 5.5 + (r() - 0.5) * 1.6, oy = 5.5 + (r() - 0.5) * 1.6, rad = 2.6 + r() * 1.4;
+      for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+        const d = Math.hypot(x - ox, y - oy), ring = Math.exp(-Math.pow((d - rad) / 1.25, 2));
+        cells.push({ x, y, v: Math.min(1, 0.18 + ring * 0.85 + (r() - 0.5) * 0.22), th: r() });
+      }
+      cv.width = N; cv.height = N;
+      return { cv, ctx: cv.getContext("2d"), cells };
+    }) : [];
+    function paint(t) {
+      tiles.forEach((tl, n) => {
+        const img = tl.ctx.createImageData(12, 12);
+        tl.cells.forEach((c, i) => {
+          const shown = c.th < prog * 1.08;
+          const wob = reduced ? 0 : 0.06 * Math.sin(t / 380 + c.x * 0.7 + c.y * 0.5 + n);
+          const col = ramp(Math.max(0, Math.min(1, (shown ? c.v : 0.08) + wob)));
+          img.data.set([col[0], col[1], col[2], shown ? 255 : 120], i * 4);
+        });
+        tl.ctx.putImageData(img, 0, 0);
+      });
+    }
+    function loop(t) { paint(t); if (!finished && !reduced) raf = requestAnimationFrame(loop); }
+    function render() {
+      if (!el) return;
+      const all = [...files.values()], done = all.filter((f) => f.st !== "wait").length;
+      const target = all.length ? done / all.length : (document.readyState === "complete" ? 1 : 0.15);
+      prog = Math.max(prog, target);
+      const fill = document.getElementById("ld-fill"), pct = document.getElementById("ld-pct"), ul = document.getElementById("ld-files");
+      if (fill) fill.style.width = (prog * 100).toFixed(0) + "%";
+      if (pct) pct.textContent = (prog * 100).toFixed(0) + "%";
+      if (ul) ul.innerHTML = all.slice(-5).map((f) => `<li class="${f.st}"><span>data/${f.name}</span><span>${f.st === "ok" && f.len ? (f.len / 1024).toFixed(0) + " KB" : f.st === "err" ? "실패" : "…"}</span></li>`).join("");
+      if (reduced) paint(0);
+      check();
+    }
+    function check() {
+      if (finished) return;
+      const pending = [...files.values()].some((f) => f.st === "wait");
+      if (document.readyState === "complete" && !pending) {
+        const wait = Math.max(0, MIN - (performance.now() - t0));
+        setTimeout(() => { if (![...files.values()].some((f) => f.st === "wait")) finish(); }, wait + 120);
+      }
+    }
+    function finish() {
+      if (finished) return;
+      finished = true;
+      prog = 1; if (el) { const fill = document.getElementById("ld-fill"); if (fill) fill.style.width = "100%"; }
+      try { sessionStorage.setItem("nx-seen", "1"); } catch (e) { /* storage blocked */ }
+      if (!el) return;
+      el.classList.add("done"); el.setAttribute("aria-hidden", "true");
+      cancelAnimationFrame(raf);
+      setTimeout(() => el.remove(), 700);
+    }
+    if (el) {
+      const skip = document.getElementById("ld-skip");
+      if (skip) skip.addEventListener("click", finish);
+      document.addEventListener("keydown", (e) => { if (e.key === "Escape") finish(); }, { once: true });
+      window.addEventListener("load", render);
+      setTimeout(finish, 8000); // never block the page
+      if (!reduced) raf = requestAnimationFrame(loop); else paint(0);
+      render();
+    }
+    return {
+      add(name) { files.set(name, { name, st: "wait", len: 0 }); render(); },
+      ok(name, len) { const f = files.get(name); if (f) { f.st = "ok"; f.len = len; } render(); },
+      err(name) { const f = files.get(name); if (f) f.st = "err"; render(); },
+      finish,
+    };
+  })();
 
   // ---------------------------------------------------------------- icons
   const I = {

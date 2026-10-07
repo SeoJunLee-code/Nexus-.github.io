@@ -213,5 +213,41 @@
     });
   }
 
-  window.NXViz = { sphere, cluster, field };
+  /* ---------------- orb thumbnail: small glowing particle globe (timeline / research cards). Static frame. */
+  const ORB_HUE = { b: ["a", "d"], v: ["b", "c"], r: ["c", "c"], g: ["d", "a"], n: ["a", "b"] };
+  function orb(canvas, opts = {}) {
+    const R = rng(opts.seed || 1), n = opts.n || 520, pts = [];
+    for (let i = 0; i < n; i++) { const u = R() * 2 - 1, th = R() * Math.PI * 2, q = Math.sqrt(1 - u * u), k = R() < 0.7 ? 1 : Math.pow(R(), 0.4); pts.push([q * Math.cos(th) * k, u * k, q * Math.sin(th) * k, R()]); }
+    const arcs = Array.from({ length: opts.arcs ?? 5 }, () => [R() * Math.PI, R() * Math.PI * 2, 0.7 + R() * 0.5]);
+    function draw() {
+      const ctx = canvas.getContext("2d"), r = canvas.getBoundingClientRect(), dpr = Math.min(window.devicePixelRatio || 1, 2);
+      if (!canvas.isConnected || r.width < 8 || r.height < 8) return;
+      const w = r.width, hh = r.height;
+      canvas.width = w * dpr; canvas.height = hh * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const P = palette(), [ka, kb] = ORB_HUE[opts.hue || "b"] || ORB_HUE.b, ca = P[ka], cb = P[kb];
+      const cx = w * (opts.cx ?? 0.5), cy = hh * (opts.cy ?? 0.5), rad = Math.min(w, hh) * (opts.scale ?? 0.36), ry = opts.rot ?? R() * 6, rx = 0.45;
+      ctx.clearRect(0, 0, w, hh);
+      ctx.globalCompositeOperation = P.mode;
+      const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, rad * 1.7);
+      g.addColorStop(0, rgba(cb, 0.38 * P.alpha)); g.addColorStop(0.45, rgba(ca, 0.14 * P.alpha)); g.addColorStop(1, rgba(ca, 0));
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, rad * 1.7, 0, Math.PI * 2); ctx.fill();
+      const c1 = Math.cos(ry), s1 = Math.sin(ry), c2 = Math.cos(rx), s2 = Math.sin(rx);
+      const pr = (x, y, z) => { const x2 = x * c1 + z * s1, z2 = -x * s1 + z * c1, y2 = y * c2 - z2 * s2, z3 = y * s2 + z2 * c2; return [cx + x2 * rad, cy + y2 * rad, z3]; };
+      ctx.lineWidth = 0.7;
+      arcs.forEach(([a, b, k], i) => { ctx.strokeStyle = rgba(i % 2 ? ca : cb, 0.35 * P.alpha); ctx.beginPath();
+        for (let t = 0; t <= 48; t++) { const th = (t / 48) * Math.PI * 2, x = Math.cos(th) * k, y = Math.sin(th) * k * Math.cos(a), z = Math.sin(th) * k * Math.sin(a); const q = pr(x * Math.cos(b) - z * Math.sin(b), y, x * Math.sin(b) + z * Math.cos(b)); t ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1]); }
+        ctx.stroke(); });
+      pts.forEach(([x, y, z, sd]) => { const q = pr(x, y, z), a = (q[2] < 0 ? 0.9 : 0.3) * (0.35 + sd * 0.65); ctx.fillStyle = rgba(mix(ca, cb, sd), a * P.alpha); const sz = sd > 0.95 ? 1.9 : 1.05; ctx.fillRect(q[0] - sz / 2, q[1] - sz / 2, sz, sz); });
+      const g2 = ctx.createRadialGradient(cx, cy, 0, cx, cy, rad * 0.5);
+      g2.addColorStop(0, rgba([255, 255, 255], 0.55 * P.alpha)); g2.addColorStop(0.3, rgba(cb, 0.3 * P.alpha)); g2.addColorStop(1, rgba(ca, 0));
+      ctx.fillStyle = g2; ctx.beginPath(); ctx.arc(cx, cy, rad * 0.5, 0, Math.PI * 2); ctx.fill();
+      ctx.globalCompositeOperation = "source-over";
+      if (opts.ring !== false) { ctx.strokeStyle = rgba(ca, 0.45 * P.alpha); ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(cx, cy, Math.min(w, hh) / 2 - 1.5, 0, Math.PI * 2); ctx.stroke(); }
+    }
+    new ResizeObserver(draw).observe(canvas);
+    document.addEventListener("nexus:theme", draw);
+    draw();
+  }
+
+  window.NXViz = { sphere, cluster, field, orb };
 })();

@@ -9,9 +9,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+KR:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./assets/css/nexus.css">
-<script>try{document.documentElement.dataset.theme=localStorage.getItem("nexus-theme")||"dark"}catch(e){document.documentElement.dataset.theme="dark"}</script>
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("nexus-theme")||"dark"}catch(e){document.documentElement.dataset.theme="dark"}try{if(!sessionStorage.getItem("nx-seen"))document.documentElement.classList.add("nx-first")}catch(e){document.documentElement.classList.add("nx-first")}</script>
 </head>
 <body data-root="./" data-page="404">
+<div class="nx-loader" id="nx-loader" role="status" aria-live="polite" aria-label="NEXUS 불러오는 중"><div class="ld-box"><div class="ld-tiles" aria-hidden="true"><canvas></canvas><canvas></canvas><canvas></canvas><canvas></canvas></div><div class="ld-brand"><svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><g stroke="#8f7bff" stroke-width="1.3"><path d="M16 4v24M5.6 10l20.8 12M26.4 10 5.6 22"/><circle cx="16" cy="16" r="11.5" stroke-opacity=".35"/></g><g fill="#59d6ff"><circle cx="16" cy="16" r="3.2"/></g></svg><span>NEXUS</span></div><div class="ld-bar"><i id="ld-fill"></i></div><div class="ld-row"><span id="ld-msg">연구 데이터를 불러오는 중</span><span id="ld-pct" class="mono">0%</span></div><ul class="ld-files mono" id="ld-files"></ul><button class="ld-skip" type="button" id="ld-skip">건너뛰기</button></div></div>
+<noscript><style>.nx-loader{display:none!important}</style></noscript>
 <a class="skip" href="#main">본문으로 건너뛰기</a>
 <header id="nav"></header>
 <main id="main">
