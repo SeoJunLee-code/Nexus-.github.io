@@ -60,7 +60,7 @@
       }));
 
       // ---- interactive research visualization (1i lab + 3D evidence cloud)
-      window.NXLab.mountPro({ ctrl: $("#lab-ctrl"), canvas: $("#lab-canvas"), out: $("#lab-out"), cap: $("#lab-cap"), key: $("#lab-stage-key") }, P5.phases["1i"], ST);
+      window.NXLab.mountPro({ ctrl: $("#lab-ctrl"), canvas: $("#lab-canvas"), out: $("#lab-out"), cap: $("#lab-cap"), key: $("#lab-stage-key") }, P5.phases["1i"], ST, SCAN);
 
       // ---- research map
       window.NXC.rmap($("#rmap"), G);

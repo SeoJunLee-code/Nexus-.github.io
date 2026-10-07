@@ -47,18 +47,37 @@
       const f = 3.2 / (3.2 + z3), sc = Math.min(st.w, st.h) * (opts.scale ?? 0.33);
       return [st.w / 2 + x2 * sc * f, st.h / 2 - y2 * sc * f + (opts.dy ?? 0), z3, f];
     }
-    function box(labels) { // wireframe cube with axis labels
-      const c = [-1, 1], P = [];
-      c.forEach((x) => c.forEach((y) => c.forEach((z) => P.push([x, y, z]))));
-      ctx.strokeStyle = css("--chart-grid") || "rgba(140,160,255,.18)"; ctx.lineWidth = 1;
-      for (let i = 0; i < 8; i++) for (let j = i + 1; j < 8; j++) {
-        const d = P[i].reduce((n, v, k) => n + (v !== P[j][k] ? 1 : 0), 0);
-        if (d !== 1) continue;
-        const a = project(...P[i]), b = project(...P[j]);
-        ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke();
+    function box(labels) { // cube: grid on the three far faces (like a lab plot box), solid edges, axis labels
+      const light = document.documentElement.dataset.theme === "light";
+      const gridCol = light ? "rgba(70,80,170,.13)" : "rgba(130,150,255,.13)", edgeCol = light ? "rgba(70,80,170,.32)" : "rgba(150,170,255,.30)";
+      const N = opts.grid ?? 6;
+      ctx.lineWidth = 0.8;
+      // faces: axis index + sign; draw grid on faces whose centre is farther than the cube centre
+      for (let ax = 0; ax < 3; ax++) for (const sg of [-1, 1]) {
+        const c = [0, 0, 0]; c[ax] = sg;
+        if (project(...c)[2] <= 0) continue;
+        const [u, v] = [0, 1, 2].filter((k) => k !== ax);
+        ctx.strokeStyle = gridCol;
+        for (let i = 0; i <= N; i++) {
+          const t = -1 + (2 * i) / N;
+          [[u, v], [v, u]].forEach(([a1, a2]) => {
+            const p1 = [0, 0, 0], p2 = [0, 0, 0];
+            p1[ax] = p2[ax] = sg; p1[a1] = p2[a1] = t; p1[a2] = -1; p2[a2] = 1;
+            const A = project(...p1), B = project(...p2);
+            ctx.beginPath(); ctx.moveTo(A[0], A[1]); ctx.lineTo(B[0], B[1]); ctx.stroke();
+          });
+        }
       }
-      ctx.fillStyle = css("--chart-axis") || "#8a93c0"; ctx.font = "10.5px Inter, sans-serif";
-      (labels || []).forEach(([x, y, z, t]) => { const p = project(x, y, z); ctx.fillText(t, p[0], p[1]); });
+      const cs = [-1, 1], P = [];
+      cs.forEach((x) => cs.forEach((y) => cs.forEach((z) => P.push([x, y, z]))));
+      ctx.strokeStyle = edgeCol; ctx.lineWidth = 1;
+      for (let i = 0; i < 8; i++) for (let j = i + 1; j < 8; j++) {
+        if (P[i].reduce((n, v, k) => n + (v !== P[j][k] ? 1 : 0), 0) !== 1) continue;
+        const A = project(...P[i]), B = project(...P[j]);
+        ctx.beginPath(); ctx.moveTo(A[0], A[1]); ctx.lineTo(B[0], B[1]); ctx.stroke();
+      }
+      ctx.fillStyle = css("--chart-axis") || "#8a93c0"; ctx.font = "10px Inter, sans-serif";
+      (labels || []).forEach(([x, y, z, t]) => { const q = project(x, y, z); ctx.fillText(t, q[0], q[1]); });
     }
     function loop(now) {
       const dt = Math.min(64, now - st.last); st.last = now;
@@ -89,6 +108,20 @@
     return { ctx, st, project, box, kick };
   }
 
+  // soft glow sprite per colour (cached) — makes a dense cloud cheap to draw every frame
+  const SPR = new Map();
+  function sprite(c) {
+    const key = c.map((v) => (v / 12) | 0).join(",");
+    let cv = SPR.get(key);
+    if (!cv) {
+      cv = document.createElement("canvas"); cv.width = cv.height = 32;
+      const g = cv.getContext("2d"), gr = g.createRadialGradient(16, 16, 0, 16, 16, 16);
+      gr.addColorStop(0, rgb(c, 1)); gr.addColorStop(0.18, rgb(c, 0.85)); gr.addColorStop(0.45, rgb(c, 0.22)); gr.addColorStop(1, rgb(c, 0));
+      g.fillStyle = gr; g.fillRect(0, 0, 32, 32); SPR.set(key, cv);
+    }
+    return cv;
+  }
+
   /** points: [{x,y,z in -1..1, v (colour value), ref, label, sub}] ; opts.axes labels */
   function cloud(canvas, points, opts = {}) {
     let hl = new Set(), proj = [], labelId = null;
@@ -98,18 +131,25 @@
       ctx.clearRect(0, 0, st.w, st.h);
       S.box(opts.axes);
       const light = document.documentElement.dataset.theme === "light";
+      if (opts.planeX != null) { // reference plane, e.g. AUROC = 0.5
+        const c4 = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([y, z]) => project(opts.planeX, y, z));
+        ctx.setLineDash([4, 4]); ctx.strokeStyle = light ? "rgba(200,60,120,.45)" : "rgba(255,120,200,.45)"; ctx.lineWidth = 1;
+        ctx.beginPath(); c4.forEach((q, i) => (i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1]))); ctx.closePath(); ctx.stroke(); ctx.setLineDash([]);
+        ctx.fillStyle = light ? "rgba(200,60,120,.05)" : "rgba(255,120,200,.04)"; ctx.fill();
+      }
       ctx.globalCompositeOperation = light ? "source-over" : "lighter";
       proj = points.map((p, i) => { const q = project(p.x, p.y, p.z); return { i, x: q[0], y: q[1], z: q[2], f: q[3], p }; }).sort((a, b) => b.z - a.z);
       const dim = hl.size > 0;
       proj.forEach((q) => {
         const p = q.p, on = hl.has(p.ref && p.ref.id);
         const c = color.point(p.v);
-        const a = (dim ? (on ? 1 : p.strong ? 0.42 : 0.2) : p.strong ? 0.9 : 0.45) * (q.z < 0 ? 1 : 0.65);
-        const r = (on ? 4.4 : p.strong ? 1.8 : 1.25) * q.f;
-        if (p.strong && !on) { ctx.fillStyle = rgb(c, a * 0.16); ctx.beginPath(); ctx.arc(q.x, q.y, r * 3, 0, 7); ctx.fill(); }
-        if (on) { const g = ctx.createRadialGradient(q.x, q.y, 0, q.x, q.y, r * 4); g.addColorStop(0, rgb(c, a * 0.55)); g.addColorStop(1, rgb(c, 0)); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(q.x, q.y, r * 4, 0, 7); ctx.fill(); }
-        ctx.fillStyle = rgb(c, a); ctx.beginPath(); ctx.arc(q.x, q.y, r, 0, 7); ctx.fill();
+        const a = (dim ? (on ? 1 : p.strong ? 0.5 : 0.28) : p.strong ? 0.95 : 0.55) * (q.z < 0 ? 1 : 0.7);
+        const r = (on ? 5.5 : p.strong ? 3.1 : 2.2) * q.f * (light ? 0.8 : 1);
+        ctx.globalAlpha = a;
+        ctx.drawImage(sprite(c), q.x - r * 2.4, q.y - r * 2.4, r * 4.8, r * 4.8);
+        if (on || p.strong) { ctx.globalAlpha = Math.min(1, a + 0.1); ctx.fillStyle = on ? "#ffffff" : rgb(c.map((v) => Math.min(255, v + 70))); ctx.fillRect(q.x - 0.7, q.y - 0.7, 1.4, 1.4); }
       });
+      ctx.globalAlpha = 1;
       ctx.globalCompositeOperation = "source-over";
       // labels for highlighted points
       ctx.font = "600 11px Inter, sans-serif";

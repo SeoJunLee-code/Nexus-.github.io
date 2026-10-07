@@ -142,97 +142,113 @@
     sync();
   }
 
-  /* ---------------- Home lab (image-3 layout): controls · 3D evidence cloud · tabs (decomposition / per-k) */
+  /* ---------------- Home lab (reference layout): controls · 3D evidence cube · tiles + curves */
   const PHASES = ["1c", "1d", "1e", "1f", "1g", "1h", "1i"];
-  function mountPro(els, phase, stats) {
+  const FAM = ["S1a_maxq", "S1b_qmargin", "S2_prederr_lag1", "S3_ensdisagree", "S4_latentrep", "S5_actcycle", "S5b_cyclerun", "S6_revisit"];
+  const STATS3 = ["mean", "std", "last"];
+  const FSHORT = { run_cpu_progress_stall: "progress_stall", run_cpu_progress_stall_multidepth: "multidepth (cpu)", run_multidepth_v2: "multidepth_v2", "run_stochastic_eps0.1": "확률 ε=0.1" };
+  const CONDS = [["run_confirm_det", "d0", "결정론 d0"], ["run_confirm_det", "d2", "결정론 d2"], ["run_confirm_stochastic_eps0.1", "d0", "ε d0"], ["run_confirm_stochastic_eps0.1", "d2", "ε d2"]];
+  function mountPro(els, phase, stats, scan) {
     const B = phase.data.B;
-    const st = { f: "run_confirm_det", d: "d0", c: "lf", step: METRICS.length - 1, tab: "dec" };
-    const keyOf = () => `${st.f}|${st.d}|${st.c}`;
+    const st = { ci: 0, all: false, step: METRICS.length - 1, tab: "tiles" };
+    const cur = () => { const [f, d] = CONDS[st.ci]; return { f, d, c: f === "run_confirm_det" || !st.all ? "lf" : "all" }; };
+    const keyOf = () => { const c = cur(); return `${c.f}|${c.d}|${c.c}`; };
 
-    // ---- controls
+    // ---- left: controls
     const ctrl = els.ctrl;
     ctrl.innerHTML = "";
     ctrl.append(h("div", { class: "l2-head" }, h("h3", {}, "maxQ 신호 분해"), badge(phase.status)),
       h("p", { class: "l2-q" }, "AI 의 '자신감(maxQ)'은 학습 정도(k)를 넘어서는 정보를 담고 있을까?"));
-    const seg = (label, name, options) => {
-      const g = h("div", { class: "seg", role: "radiogroup", "aria-label": label });
-      options.forEach(([v, l]) => g.append(h("button", { type: "button", role: "radio", "data-v": v, onclick: () => { st[name] = v; sync(); } }, l)));
-      const w = h("div", { class: "l2-field" }, h("span", { class: "lab-label" }, label), g); w._seg = g; w._name = name; return w;
-    };
-    const gF = seg("정책 (1f 확인 실험)", "f", [["run_confirm_det", "결정론"], ["run_confirm_stochastic_eps0.1", "확률 ε=0.1"]]);
-    const gD = seg("계획 깊이", "d", [["d0", "d0 직접"], ["d2", "d2 플래너"]]);
-    const gC = seg("표본", "c", [["lf", "고리통제"], ["all", "전체"]]);
     const range = h("input", { type: "range", min: 0, max: METRICS.length - 1, step: 1, value: st.step, class: "l2-range", "aria-label": "분해 단계" });
     const stepLab = h("span", { class: "l2-step mono" });
-    const stepSub = h("div", { class: "faint", style: "font-size:11.5px;margin-top:4px" });
+    const stepSub = h("div", { class: "faint", style: "font-size:11.5px;margin-top:2px" });
     range.addEventListener("input", () => { st.step = +range.value; stopPlay(); sync(); });
-    const play = h("button", { class: "btn l2-run", type: "button" }, "▶ 분해 재생");
+    const condGrid = h("div", { class: "l2-conds", role: "radiogroup", "aria-label": "조건 (1f 확인 실험 폴더 · 깊이)" });
+    CONDS.forEach(([, , l], i) => condGrid.append(h("button", { type: "button", role: "radio", onclick: () => { st.ci = i; sync(); } }, l)));
+    const allChk = h("input", { type: "checkbox", id: "l2-all" });
+    allChk.addEventListener("change", () => { st.all = allChk.checked; sync(); });
+    const play = h("button", { class: "btn l2-run", type: "button" }, "분해 재생");
     let timer = 0;
-    function stopPlay() { clearInterval(timer); timer = 0; play.textContent = "▶ 분해 재생"; }
+    function stopPlay() { clearInterval(timer); timer = 0; play.textContent = "분해 재생"; }
     play.addEventListener("click", () => {
       if (timer) return stopPlay();
       if (reduced) { st.step = METRICS.length - 1; return sync(); }
       st.step = 0; sync(); play.textContent = "■ 정지";
       timer = setInterval(() => { if (st.step >= METRICS.length - 1) return stopPlay(); st.step++; sync(); }, 1100);
     });
-    const note = h("p", { class: "faint", style: "font-size:11.5px;margin:0" });
-    ctrl.append(gF, gD, gC, h("div", { class: "l2-field" }, h("div", { style: "display:flex;justify-content:space-between;align-items:baseline" }, h("span", { class: "lab-label" }, "분해 단계"), stepLab), range, stepSub), play, note);
+    ctrl.append(
+      h("div", { class: "l2-field" }, h("div", { class: "l2-row" }, h("span", { class: "lab-label" }, "분해 단계"), stepLab), range, stepSub),
+      h("div", { class: "l2-field" }, h("span", { class: "lab-label" }, "조건 (1f 확인 실험 · 깊이)"), condGrid,
+        h("label", { class: "chk", style: "margin-top:8px", for: "l2-all" }, allChk, "확률 정책은 전체 표본으로")),
+      play);
 
-    // ---- 3D evidence cloud (all AUROC with CI)
+    // ---- centre: 3D evidence cube (every AUROC with a CI, phases 1c–1i)
     const items = stats.items.filter((x) => x.metric === "AUROC" && x.lo != null && PHASES.includes(x.phase));
-    const pts = items.map((x) => {
-      const wdt = x.hi - x.lo;
-      return { x: Math.max(-1, Math.min(1, (x.v - 0.5) * 2)), y: Math.max(-1, Math.min(1, 1 - 2 * Math.min(1, wdt / 0.6))), z: -1 + 2 * PHASES.indexOf(x.phase) / (PHASES.length - 1),
-        v: x.v, ref: { id: x.id, v: x.v, lo: x.lo, hi: x.hi }, label: x.label, sub: `${x.src} · CI 폭 ${fmt(wdt)}`, strong: x.lo > 0.5 || x.hi < 0.5, short: x.id.split("/").pop() };
-    });
-    const axes = [[-1, -1.18, 1, "AUROC 0"], [0.82, -1.18, 1, "1"], [-0.12, -1.18, 1, "0.5"], [-1.08, 1.08, 1, "CI 좁음"], [-1.08, -0.9, 1, "CI 넓음"], [1.06, -1, -1, "1c"], [1.06, -1, 1, "1i"]];
-    const cl = window.NX3D.cloud(els.canvas, pts, { axes, scale: 0.29, dy: 12 });
-    els.cap.textContent = `점 ${pts.length}개 = 통계표의 AUROC 전부 (1c–1i, CI 있는 것) · 가로 = AUROC, 세로 = CI 폭(위로 갈수록 정밀), 깊이 = 단계 · 밝은 점 = CI 가 0.5 를 벗어남 · 드래그로 회전, 클릭하면 출처`;
+    const vs = items.map((x) => x.v), ws = items.map((x) => x.hi - x.lo);
+    const xmin = Math.floor(Math.min(...vs) * 10) / 10, xmax = Math.ceil(Math.max(...vs) * 10) / 10, wmax = Math.ceil(Math.max(...ws) * 10) / 10;
+    const X = (v) => -1 + 2 * (v - xmin) / (xmax - xmin);
+    const pts = items.map((x) => ({ x: X(x.v), y: 1 - 2 * ((x.hi - x.lo) / wmax), z: -1 + 2 * PHASES.indexOf(x.phase) / (PHASES.length - 1),
+      v: x.v, ref: { id: x.id, v: x.v, lo: x.lo, hi: x.hi }, label: x.label, sub: `${x.src} · CI 폭 ${fmt(x.hi - x.lo)}`, strong: x.lo > 0.5 || x.hi < 0.5, short: x.id.split("/").pop() }));
+    const axes = [[-1, -1.14, 1, String(xmin)], [0.92, -1.14, 1, String(xmax)], [X(0.5) - 0.05, -1.14, 1, "0.5"], [-0.3, -1.3, 1, "AUROC →"],
+      [-1.12, 0.96, 1, "CI 좁음"], [-1.12, -0.96, 1, `CI ${wmax}`], [1.06, -1.06, -1, "1c"], [1.06, -1.06, 1, "1i"]];
+    const cl = window.NX3D.cloud(els.canvas, pts, { axes, scale: 0.3, dy: 10, planeX: X(0.5), rx: 0.38, ry: -0.72 });
+    els.cap.textContent = `점 ${pts.length}개 = 통계표의 AUROC 전부(1c–1i, CI 있는 것) · 가로 AUROC · 세로 CI 폭 · 깊이 단계 · 점선 면 = 0.5(우연) · 밝을수록 CI 가 0.5 를 벗어남`;
 
-    // ---- right: tabs
+    // ---- right: tabs (tiles + curves / decomposition)
     const out = els.out;
     out.innerHTML = "";
     const tabs = h("div", { class: "l2-tabs", role: "tablist" });
     const panel = h("div", { class: "l2-panel", role: "tabpanel" });
-    [["dec", "분해 (AUROC)"], ["k", "k 별 (per_k)"]].forEach(([k, l]) => tabs.append(h("button", { type: "button", role: "tab", "data-t": k, onclick: () => { st.tab = k; sync(); } }, l)));
+    [["tiles", "신호 타일 (1c)"], ["dec", "분해 (1i)"]].forEach(([k, l]) => tabs.append(h("button", { type: "button", role: "tab", "data-t": k, onclick: () => { st.tab = k; sync(); } }, l)));
     out.append(tabs, panel);
+    const C1 = scan && scan["1c"];
+    const tileCells = (g) => FAM.flatMap((fk) => STATS3.map((sx) => { const x = g && g.features.find((y) => y.name === `${fk}_${sx}`); return { ref: x ? x.stat : null, label: `${fk}_${sx}`, sub: g ? `${g.name} · 에피소드 ${g.n_ep} · 양성 ${g.n_pos}` : "" }; }));
 
     function sync() {
-      if (st.f === "run_confirm_det") st.c = "lf";
-      [gF, gD, gC].forEach((g) => g._seg.querySelectorAll("button").forEach((b) => { const on = b.dataset.v === st[g._name]; b.setAttribute("aria-pressed", on); b.setAttribute("aria-checked", on); }));
-      const allBtn = gC._seg.querySelector('[data-v="all"]');
-      allBtn.disabled = st.f === "run_confirm_det";
-      allBtn.title = allBtn.disabled ? "1i 는 결정론 폴더에서 '전체' 표본을 분석하지 않음 (코드 규칙)" : "";
-      note.textContent = st.f === "run_confirm_det" ? "결정론 폴더는 고리통제 표본만 분석됨 (1i 코드 규칙)." : "확률 정책은 '전체' 표본도 분석됨.";
+      const c = cur();
+      condGrid.querySelectorAll("button").forEach((b, i) => { b.setAttribute("aria-pressed", i === st.ci); b.setAttribute("aria-checked", i === st.ci); });
+      allChk.disabled = c.f === "run_confirm_det";
       range.value = st.step;
       const [mk, ml, msub] = METRICS[st.step];
-      stepLab.textContent = `${st.step + 1}/${METRICS.length} · ${ml}`;
+      stepLab.textContent = `${ml} · ${st.step + 1}/${METRICS.length}`;
       stepSub.textContent = msub;
-      tabs.querySelectorAll("button").forEach((b) => { const on = b.dataset.t === st.tab; b.setAttribute("aria-selected", on); });
+      tabs.querySelectorAll("button").forEach((b) => b.setAttribute("aria-selected", b.dataset.t === st.tab));
       const key = keyOf(), item = B.find((b) => b.key === key);
       els.key && (els.key.textContent = key);
       cl.highlight(item ? METRICS.slice(0, st.step + 1).map(([m]) => item.stats[m] && item.stats[m].id).filter(Boolean) : [], item && item.stats[mk] ? item.stats[mk].id : null);
       panel.innerHTML = "";
-      if (!item) { panel.append(h("p", { class: "pending" }, "DATA PENDING — 이 조합은 1i 결과에 없음")); return; }
-      panel.append(h("div", { class: "sub faint", style: "font-size:12px;margin-bottom:6px" }, `${POLICY[st.f]} · ${st.d === "d0" ? "depth 0" : "depth 2"} · ${st.c === "lf" ? "고리통제" : "전체"} — 에피소드 ${item.n_ep} · 양성 ${item.n_pos} · run ${item.n_run}`));
-      if (st.tab === "dec") {
+      if (st.tab === "tiles") {
+        if (!C1) { panel.append(h("p", { class: "pending" }, "DATA PENDING — paper5_scan.json 없음")); return; }
+        const depth = c.d.replace("d", "");
+        [["std", "전체 표본"], ["loopfree", "고리통제"]].forEach(([mode, ml2]) => {
+          panel.append(h("div", { class: "l2-rowlab" }, `${ml2} · N=5 · depth ${depth}`));
+          const row = h("div", { class: "l2-tiles" });
+          C1.folders.forEach((f) => {
+            const g = f.groups.find((x) => x.name === `${mode}_N5_depth${depth}_key`);
+            const holder = h("div");
+            row.append(h("figure", { class: "l2-tile" }, holder, h("figcaption", {}, FSHORT[f.folder] || f.folder)));
+            if (g) window.NX3D.tile(holder, tileCells(g), { cols: 5, aria: `${f.folder} ${g.name} 신호 24개 AUROC` });
+            else holder.append(h("div", { class: "htile none", title: `depth ${depth} 그룹 없음` }, h("span", {}, "없음")));
+          });
+          panel.append(row);
+        });
+        panel.append(window.NX3D.colorbar("auroc"));
+        const ch = h("div", { class: "chart", style: "margin-top:12px" });
+        panel.append(h("div", { class: "l2-rowlab" }, "학습 설정 k 별 성공률 (1i · 고리통제)"), ch);
+        const cols = [css("--cyan"), css("--blue"), css("--magenta"), css("--violet")];
+        const ser = CONDS.map(([f, d, l], i) => { const it = B.find((b) => b.key === `${f}|${d}|lf`); return { label: l, color: cols[i], pts: it ? Object.entries(it.per_k || {}).filter(([, v]) => v).map(([k, v]) => [+k, v.pos_rate, null, `에피소드 ${v.n_ep} · run ${v.n_run}`]) : [] }; });
+        window.NX3D.lines(ch, ser, { log2: true, xname: "k", xlabel: "k (log)", width: 440, height: 150, aria: "1i 조건별 k 에 따른 성공률" });
+        panel.append(h("p", { class: "faint", style: "font-size:11px;margin:4px 0 0" }, "타일 한 칸 = 1c 신호 하나의 AUROC (24칸). 빗금 = 값 없음. 곡선 = analysis_phase1i.json per_k."));
+      } else {
+        if (!item) { panel.append(h("p", { class: "pending" }, "DATA PENDING — 이 조합은 1i 결과에 없음")); return; }
+        panel.append(h("div", { class: "sub faint", style: "font-size:12px;margin-bottom:6px" }, `${POLICY[c.f]} · ${c.d === "d0" ? "depth 0" : "depth 2"} · ${c.c === "lf" ? "고리통제" : "전체"} — 에피소드 ${item.n_ep} · 양성 ${item.n_pos} · run ${item.n_run}`));
         const ch = h("div", { class: "chart" });
         panel.append(ch);
         forest(ch, METRICS.map(([k, l, sub], i) => ({ label: l, ref: i <= st.step ? item.stats[k] : null, sub, dim: i > st.step, color: i === st.step ? css("--cyan") : k === "total" ? css("--blue") : css("--violet") })),
           { min: 0.2, max: 1, ref: 0.5, refLabel: "0.5 = 예측력 없음", ticks: [0.2, 0.4, 0.5, 0.6, 0.8, 1], labW: 84, width: 440, rowH: 27, aria: "1i 분해 AUROC" });
-        ch.querySelectorAll("text").forEach((t) => { if (t.textContent === "DATA PENDING") t.textContent = "▶ 재생 / 슬라이더로 공개"; });
+        ch.querySelectorAll("text").forEach((t) => { if (t.textContent === "DATA PENDING") t.textContent = "재생 / 슬라이더로 공개"; });
         panel.append(h("div", { class: "callout " + (/k\(학습 설정\)로 설명/.test(item.label || "") ? "fals" : "warn"), style: "font-size:12.5px" },
           h("span", { html: window.NX.I.info }), h("div", {}, h("div", { class: "faint", style: "font-size:11px;letter-spacing:.1em" }, "1i 자동 라벨 (원문)"), item.label || "—")));
-      } else {
-        const ks = (it) => Object.entries(it.per_k || {}).filter(([, v]) => v).map(([k, v]) => [+k, v]);
-        const other = B.find((b) => b.key === `${st.f}|${st.d === "d0" ? "d2" : "d0"}|${st.c}`);
-        const ser = (it, f, col, lab) => ({ label: lab, color: col, pts: ks(it).map(([k, v]) => [k, f(v), null, `에피소드 ${v.n_ep} · run ${v.n_run}`]) });
-        const both = [[item, css("--cyan"), st.d], ...(other ? [[other, css("--magenta"), st.d === "d0" ? "d2" : "d0"]] : [])];
-        const c1 = h("div", { class: "chart" }), c2 = h("div", { class: "chart" });
-        panel.append(h("div", { class: "lab-label" }, "성공률 (pos_rate)"), c1, h("div", { class: "lab-label", style: "margin-top:8px" }, "평균 maxQ (mean_maxq)"), c2);
-        window.NX3D.lines(c1, both.map(([it, col, d]) => ser(it, (v) => v.pos_rate, col, d)), { log2: true, xname: "k", xlabel: "학습 설정 k (log)", width: 420, height: 150, aria: "k 별 성공률" });
-        window.NX3D.lines(c2, both.map(([it, col, d]) => ser(it, (v) => v.mean_maxq, col, d)), { log2: true, xname: "k", width: 420, height: 150, aria: "k 별 평균 maxQ" });
-        panel.append(h("p", { class: "faint", style: "font-size:11.5px;margin:6px 0 0" }, "analysis_phase1i.json 의 per_k 값 그대로. k=2 는 거의 미학습 — 1j 는 k=8, 32 만 봅니다 (실행 전)."));
       }
     }
     sync();

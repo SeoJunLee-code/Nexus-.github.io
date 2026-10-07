@@ -147,6 +147,8 @@ def add_vci(sid, node, keys, *, src, label, proj, phase, metric="AUROC", core=Fa
     if not isinstance(node, dict) or "v" not in node:
         return None
     ci = node.get("ci") or [None, None]
+    if metric == "AUROC" and keys and "spearman" in str(keys[-1]):
+        metric = "spearman"  # 1g run_spearman 은 순위 상관계수 (−1..1), AUROC 가 아님
     return REG.add(sid, node.get("v"), lo=ci[0], hi=ci[1], src=src, path=path_str(keys), label=label,
                    proj=proj, phase=phase, metric=metric, core=core, note=note)
 

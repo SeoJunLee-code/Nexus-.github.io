@@ -57,28 +57,54 @@
     const R = (sd) => () => ((sd = (sd * 1664525 + 1013904223) >>> 0) / 4294967296);
     const STOPS = [[0, [26, 42, 122]], [0.35, [34, 120, 255]], [0.6, [34, 199, 255]], [0.82, [255, 242, 122]], [1, [255, 79, 216]]];
     const ramp = (t) => { for (let i = 1; i < STOPS.length; i++) if (t <= STOPS[i][0]) { const [a, ca] = STOPS[i - 1], [b, cb] = STOPS[i], k = (t - a) / (b - a); return ca.map((v, j) => v + (cb[j] - v) * k); } return STOPS[STOPS.length - 1][1]; };
-    // four decorative 12×12 "ring" tiles that fill in as data arrives (no research values)
-    const tiles = el ? Array.from(el.querySelectorAll(".ld-tiles canvas")).map((cv, n) => {
-      const r = R(11 + n * 31), N = 12, cells = [];
-      const ox = 5.5 + (r() - 0.5) * 1.6, oy = 5.5 + (r() - 0.5) * 1.6, rad = 2.6 + r() * 1.4;
-      for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
-        const d = Math.hypot(x - ox, y - oy), ring = Math.exp(-Math.pow((d - rad) / 1.25, 2));
-        cells.push({ x, y, v: Math.min(1, 0.18 + ring * 0.85 + (r() - 0.5) * 0.22), th: r() });
-      }
-      cv.width = N; cv.height = N;
-      return { cv, ctx: cv.getContext("2d"), cells };
-    }) : [];
+    // decorative neural network: 3 ring tiles as the input layer → hidden layers → output; layers light up with real progress
+    const net = el ? el.querySelector(".ld-net") : null;
+    const NET = (function () {
+      if (!net) return null;
+      const r = R(7), LAY = [3, 6, 8, 6, 1], W = 320, H = 150;
+      const xs = [26, 104, 168, 232, 294];
+      const nodes = LAY.map((n, l) => Array.from({ length: n }, (_, i) => ({ x: xs[l], y: l === 0 ? 30 + i * 45 : H / 2 + (i - (n - 1) / 2) * (l === 4 ? 0 : 17), ph: r() * 6 })));
+      const edges = [];
+      for (let l = 0; l < LAY.length - 1; l++) nodes[l].forEach((a, i) => nodes[l + 1].forEach((b, j) => { if (l === 0 || r() < 0.62 || LAY[l + 1] === 1) edges.push({ l, a, b, w: 0.3 + r() * 0.7 }); }));
+      const tiles = [0, 1, 2].map((n) => { const rr = R(11 + n * 31), N = 12, cells = []; const ox = 5.5 + (rr() - 0.5) * 1.6, oy = 5.5 + (rr() - 0.5) * 1.6, rad = 2.6 + rr() * 1.4;
+        for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { const d = Math.hypot(x - ox, y - oy); cells.push(Math.min(1, 0.18 + Math.exp(-Math.pow((d - rad) / 1.25, 2)) * 0.85 + (rr() - 0.5) * 0.22)); }
+        const cv = document.createElement("canvas"); cv.width = cv.height = N; const cx = cv.getContext("2d"), img = cx.createImageData(N, N);
+        cells.forEach((v, i) => { const c = ramp(v); img.data.set([c[0], c[1], c[2], 255], i * 4); }); cx.putImageData(img, 0, 0); return cv; });
+      const pulses = [];
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      net.width = W * dpr; net.height = H * dpr;
+      const ctx = net.getContext("2d"); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.imageSmoothingEnabled = false;
+      return { LAY, nodes, edges, tiles, pulses, ctx, W, H, r };
+    })();
     function paint(t) {
-      tiles.forEach((tl, n) => {
-        const img = tl.ctx.createImageData(12, 12);
-        tl.cells.forEach((c, i) => {
-          const shown = c.th < prog * 1.08;
-          const wob = reduced ? 0 : 0.06 * Math.sin(t / 380 + c.x * 0.7 + c.y * 0.5 + n);
-          const col = ramp(Math.max(0, Math.min(1, (shown ? c.v : 0.08) + wob)));
-          img.data.set([col[0], col[1], col[2], shown ? 255 : 120], i * 4);
-        });
-        tl.ctx.putImageData(img, 0, 0);
-      });
+      if (!NET) return;
+      const { LAY, nodes, edges, tiles, pulses, ctx, W, H, r } = NET;
+      const L = LAY.length, act = (l) => Math.max(0, Math.min(1, prog * (L - 0.4) - l + 0.6));
+      ctx.clearRect(0, 0, W, H);
+      ctx.globalCompositeOperation = "lighter";
+      edges.forEach((e) => { const a = act(e.l + 1); ctx.strokeStyle = `rgba(${a > 0.5 ? "150,120,255" : "90,110,220"},${0.05 + a * 0.16 * e.w})`; ctx.lineWidth = 0.7; ctx.beginPath(); ctx.moveTo(e.a.x + (e.l === 0 ? 13 : 0), e.a.y); ctx.lineTo(e.b.x, e.b.y); ctx.stroke(); });
+      if (!reduced && !finished) {
+        const live = edges.filter((e) => act(e.l) > 0.3);
+        for (let k = 0; k < 2; k++) if (live.length && r() < 0.5 + prog * 0.4) pulses.push({ e: live[(r() * live.length) | 0], s: 0, v: 0.012 + r() * 0.02 });
+      }
+      for (let i = pulses.length - 1; i >= 0; i--) {
+        const p = pulses[i]; p.s += p.v;
+        if (p.s >= 1) { pulses.splice(i, 1); continue; }
+        const x = p.e.a.x + (p.e.l === 0 ? 13 : 0) + (p.e.b.x - p.e.a.x - (p.e.l === 0 ? 13 : 0)) * p.s, y = p.e.a.y + (p.e.b.y - p.e.a.y) * p.s;
+        const g = ctx.createRadialGradient(x, y, 0, x, y, 5); g.addColorStop(0, "rgba(120,230,255,.95)"); g.addColorStop(1, "rgba(120,140,255,0)");
+        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, 5, 0, 7); ctx.fill();
+      }
+      nodes.forEach((layer, l) => layer.forEach((n) => {
+        if (l === 0) return;
+        const a = act(l), tw = reduced ? 1 : 0.75 + 0.25 * Math.sin(t / 420 + n.ph);
+        const rad = l === L - 1 ? 9 : 3.6, col = l === L - 1 ? "255,140,230" : "150,170,255";
+        const g = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, rad * 3.4);
+        g.addColorStop(0, `rgba(${col},${(0.25 + a * 0.75) * tw})`); g.addColorStop(0.35, `rgba(${col},${0.12 + a * 0.3})`); g.addColorStop(1, `rgba(${col},0)`);
+        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(n.x, n.y, rad * 3.4, 0, 7); ctx.fill();
+        ctx.fillStyle = `rgba(255,255,255,${0.25 + a * 0.75})`; ctx.beginPath(); ctx.arc(n.x, n.y, rad * 0.45, 0, 7); ctx.fill();
+      }));
+      ctx.globalCompositeOperation = "source-over";
+      nodes[0].forEach((n, i) => { ctx.globalAlpha = 0.55 + act(0) * 0.45; ctx.drawImage(tiles[i], n.x - 13, n.y - 13, 26, 26); ctx.globalAlpha = 1; ctx.strokeStyle = "rgba(150,170,255,.35)"; ctx.strokeRect(n.x - 13.5, n.y - 13.5, 27, 27); });
     }
     function loop(t) { paint(t); if (!finished && !reduced) raf = requestAnimationFrame(loop); }
     function render() {
