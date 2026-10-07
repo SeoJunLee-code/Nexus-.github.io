@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ko" class="no-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Statistics — NEXUS</title>
+<meta name="description" content="NEXUS 전체 통계표: H1 과 Paper 5 의 모든 수치(값, 95% CI, n, 원본 JSON 경로)를 필터·정렬·검색하고 두 수치를 비교합니다.">
+<meta name="theme-color" content="#03050d">
+<link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+KR:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/nexus.css">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("nexus-theme")||"dark"}catch(e){document.documentElement.dataset.theme="dark"}</script>
+</head>
+<body data-root="../" data-page="statistics">
+<a class="skip" href="#main">본문으로 건너뛰기</a>
+<header id="nav"><noscript><nav class="wrap"><a href="../">NEXUS</a> · <a href="../h1/">H1</a> · <a href="../paper5/">Paper 5</a></nav></noscript></header>
+
+<main id="main">
+  <section class="page-hero" aria-labelledby="st-title">
+    <div class="wrap">
+      <div class="crumb"><a href="../">← Home</a><span>/</span><span>Statistics</span></div>
+      <div class="kicker">Statistics · Registry</div>
+      <h1 class="h-display" id="st-title" style="font-size:clamp(32px,4vw,52px);margin-top:10px">전체 통계표</h1>
+      <p class="q">사이트에 나오는 모든 수치는 이 표의 한 줄입니다. 각 줄에는 원본 파일과 JSON 경로(또는 계산 방법)가 붙어 있습니다.</p>
+      <div class="meta-row" id="st-meta"></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px" class="no-print">
+        <a class="btn sm" href="../data/statistics.json" download><span aria-hidden="true">↓</span> statistics.json</a>
+        <button class="btn sm ghost" type="button" id="csv-btn">현재 필터 CSV 내려받기</button>
+        <button class="btn sm ghost" type="button" id="link-btn">현재 필터 링크 복사</button>
+        <button class="btn sm ghost" type="button" onclick="window.print()">인쇄 / PDF</button>
+      </div>
+    </div>
+  </section>
+
+  <nav class="subnav no-print" aria-label="Statistics 섹션"><div class="wrap">
+    <a href="#table">Table</a><a href="#compare">Compare</a><a href="#notes">읽는 법</a><a href="#downloads">Downloads</a>
+  </div></nav>
+
+  <section class="rsec" id="table"><div class="wrap">
+    <div class="panel">
+      <form class="st-filters no-print" id="st-form" role="search" aria-label="통계 필터" onsubmit="return false">
+        <input class="field" type="search" id="f-q" placeholder="검색 — id, 항목, 원본 파일, 경로 (예: 1i resk, backfire, lay×dist)" aria-label="검색어" autocomplete="off">
+        <select class="field" id="f-proj" aria-label="프로젝트"><option value="">모든 프로젝트</option></select>
+        <select class="field" id="f-phase" aria-label="단계"><option value="">모든 단계</option></select>
+        <select class="field" id="f-metric" aria-label="지표"><option value="">모든 지표</option></select>
+        <select class="field" id="f-ci" aria-label="신뢰구간 조건">
+          <option value="">CI 조건 없음</option>
+          <option value="ex05">CI 가 0.5 를 벗어남 (AUROC·비율)</option>
+          <option value="in05">CI 가 0.5 를 포함</option>
+          <option value="ex0">CI 가 0 을 벗어남 (차이)</option>
+          <option value="noci">CI 없음</option>
+        </select>
+        <label class="chk"><input type="checkbox" id="f-core"> 핵심 수치만</label>
+        <button class="btn sm ghost" type="button" id="f-reset">초기화</button>
+      </form>
+      <div class="st-count faint" id="st-count" aria-live="polite"></div>
+      <div class="table-wrap"><table class="t" id="st-table"></table></div>
+      <div class="pager no-print" id="st-pager"></div>
+    </div>
+  </div></section>
+
+  <section class="rsec" id="compare"><div class="wrap">
+    <div class="kicker">Compare Mode</div>
+    <h2>두 수치 나란히 보기</h2>
+    <p class="muted" style="max-width:78ch">id 를 입력하거나 목록에서 고르세요. 표의 각 줄에 있는 <b>A</b> / <b>B</b> 버튼으로도 넣을 수 있습니다. 이 화면은 <strong>유의성 검정을 하지 않습니다</strong> — 두 CI 가 겹치는지만 사실로 표시합니다 (표본이 겹치거나 같은 run 을 공유하면 CI 겹침으로 차이를 판단할 수 없습니다).</p>
+    <div class="panel" style="margin-top:14px">
+      <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px" class="no-print cmp-in">
+        <input class="field" id="cmp-a" list="stat-ids" placeholder="A — stat id" aria-label="비교 A stat id">
+        <input class="field" id="cmp-b" list="stat-ids" placeholder="B — stat id" aria-label="비교 B stat id">
+      </div>
+      <datalist id="stat-ids"></datalist>
+      <div class="compare" id="cmp-out" style="margin-top:14px"></div>
+      <div class="chart" id="cmp-chart" style="margin-top:10px"></div>
+    </div>
+  </div></section>
+
+  <section class="rsec" id="notes"><div class="wrap">
+    <div class="kicker">How to read</div>
+    <h2>읽는 법</h2>
+    <div class="grid g3">
+      <div class="panel prose"><h3>AUROC</h3><p>0.5 = 우연, 1 = 완벽, 0 = 완벽하게 반대. Paper 5 의 AUROC 는 대부분 층화(같은 배치·거리 등끼리만 비교) 값이며, CI 는 run 군집 부트스트랩입니다 (원자료 <code>ci95</code>).</p></div>
+      <div class="panel prose"><h3>Backfire · 비율</h3><p>H1 의 backfire 는 비축퇴 문제 중 다수결이 틀린 비율. CI 는 문제 단위 부트스트랩 B=10000, seed 0 (원본 코드 <code>_boot</code> 와 같은 방식, build_data.py 재계산).</p></div>
+      <div class="panel prose"><h3>Source · Path</h3><p><code>path</code> 는 원본 JSON 안의 위치, <code>method</code> 는 원자료에서 계산한 방법입니다. Evidence 버튼은 원본 파일 SHA-256 까지 보여 줍니다.</p></div>
+    </div>
+  </div></section>
+
+  <section class="rsec" id="downloads"><div class="wrap">
+    <div class="kicker">Downloads</div>
+    <h2>데이터 파일</h2>
+    <div class="table-wrap" style="margin-top:14px"><table class="t" id="dl-table"></table></div>
+    <p class="faint" style="font-size:12.5px;margin-top:10px">h1v2_*.jsonl 원자료는 용량 때문에 저장소에 올리지 않았습니다 (SHA-256 만 기록). 문제별 집계는 data_raw/h1_problem_rows.json 에 있습니다.</p>
+  </div></section>
+</main>
+<footer id="footer"></footer>
+<script src="../assets/js/core.js" defer></script>
+<script src="../assets/js/statistics.js" defer></script>
+</body>
+</html>

@@ -94,7 +94,7 @@
    "date": "2026-09-24T06:28:38.097Z",
    "project": "h1",
    "type": "next",
-   "title": "다음 질문",
+   "title": "H1 다음 질문 — 아직 기록 없음",
    "detail": "H1_STEP4_cell.py 에는 4단계 이후 계획이 기록되어 있지 않음 — 다음 질문은 아직 문서화되지 않음.",
    "src": "H1_STEP4_cell.py",
    "link": "h1/#next",
@@ -107,7 +107,7 @@
    "title": "Phase 1b 실행",
    "detail": "노트북·코드 파일만 확인됨 (결과 JSON 은 이 저장소에 없음).",
    "src": "drive_manifest.json",
-   "link": "paper5/#timeline",
+   "link": "paper5/#narrative",
    "id": "ev10"
   },
   {
@@ -137,7 +137,7 @@
    "title": "1e — ④ 보강 분석",
    "detail": "직접 행동(depth0) vs 플래너(depth2) 신호 차이, 1d 값 재현 점검.",
    "src": "analysis_phase1e.json",
-   "link": "paper5/#phase-1e",
+   "link": "paper5/#phase-1f",
    "id": "ev13"
   },
   {
@@ -167,7 +167,7 @@
    "title": "1h — ⑦ 대조",
    "detail": "maxQ 신호를 k(학습 설정) 성분과 나머지로 분해 — 1e 폴더.",
    "src": "analysis_phase1h.json",
-   "link": "paper5/#phase-1h",
+   "link": "paper5/#phase-1g",
    "id": "ev16"
   },
   {

@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="ko" class="no-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reproduce — NEXUS</title>
+<meta name="description" content="NEXUS 재현 정보: 분석 코드와 원자료의 SHA-256, PREREG 해시, 1i 코드 무결성 대조, 데이터 재생성·검사 방법. 브라우저에서 해시를 다시 계산해 볼 수 있습니다.">
+<meta name="theme-color" content="#03050d">
+<link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+KR:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/nexus.css">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("nexus-theme")||"dark"}catch(e){document.documentElement.dataset.theme="dark"}</script>
+</head>
+<body data-root="../" data-page="reproduce">
+<a class="skip" href="#main">본문으로 건너뛰기</a>
+<header id="nav"><noscript><nav class="wrap"><a href="../">NEXUS</a> · <a href="../statistics/">Statistics</a></nav></noscript></header>
+
+<main id="main">
+  <section class="page-hero" aria-labelledby="rp-title">
+    <div class="wrap">
+      <div class="crumb"><a href="../">← Home</a><span>/</span><span>Reproduce</span></div>
+      <div class="kicker">Reproduce · Integrity</div>
+      <h1 class="h-display" id="rp-title" style="font-size:clamp(32px,4vw,52px);margin-top:10px">재현 정보</h1>
+      <p class="q">이 사이트의 숫자를 어떻게 다시 만들 수 있는지, 어떤 파일이 그 근거인지, 그리고 아직 재현할 수 없는 부분이 무엇인지.</p>
+      <div class="meta-row" id="rp-meta"></div>
+    </div>
+  </section>
+
+  <nav class="subnav no-print" aria-label="Reproduce 섹션"><div class="wrap">
+    <a href="#run">실행 방법</a><a href="#code">Code SHA-256</a><a href="#prereg">PREREG</a><a href="#verify">브라우저 검증</a><a href="#sources">원자료</a><a href="#data">Data</a><a href="#gaps">재현 불가 항목</a>
+  </div></nav>
+
+  <section class="rsec" id="run"><div class="wrap">
+    <div class="kicker">How to rebuild</div>
+    <h2>사이트 데이터 다시 만들기</h2>
+    <div class="grid g2" style="margin-top:14px">
+      <div class="panel">
+        <h3>1. 데이터 재생성과 검사</h3>
+        <div class="code-block" id="cmd-build"></div>
+        <ul class="muted" style="font-size:13px;margin:10px 0 0;padding-left:18px">
+          <li><code>build_data.py</code> 는 표준 라이브러리만 씁니다 (Python 3.9+).</li>
+          <li><code>--check</code> 는 다시 만든 결과가 커밋된 <code>data/</code> 와 같은지 비교합니다 (빌드 시각 제외).</li>
+          <li>H1 원자료 <code>h1v2_*.jsonl</code> 이 <code>data_raw/</code> 에 있으면 문제별 집계를 다시 만들고, 없으면 커밋된 <code>h1_problem_rows.json</code> 을 씁니다.</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>2. 사이트 열기</h3>
+        <div class="code-block" id="cmd-serve"></div>
+        <ul class="muted" style="font-size:13px;margin:10px 0 0;padding-left:18px">
+          <li>정적 사이트입니다. 빌드 도구나 프레임워크가 없습니다.</li>
+          <li><code>file://</code> 로 직접 열면 브라우저가 <code>fetch</code> 를 막아 데이터가 보이지 않습니다 — 로컬 서버로 여세요.</li>
+          <li>GitHub Pages 에 올릴 때는 <code>nexus/</code> 폴더 내용을 저장소 루트(또는 <code>/docs</code>)에 두면 모든 링크가 상대 경로라 그대로 동작합니다.</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>3. 원래 분석 다시 돌리기 (Colab)</h3>
+        <ul class="muted" style="font-size:13px;margin:0;padding-left:18px">
+          <li><code>code/*.py</code> 는 Colab 셀 원본 그대로입니다 (Drive 원본과 바이트 수 일치).</li>
+          <li><b>H1</b> — <code>H1_STEP4_cell.py</code> 는 Qwen2.5-Instruct 모델로 문제당 16개 답을 생성합니다 (GPU 필요, 결과는 Drive 에 jsonl 로 저장).</li>
+          <li><b>Paper 5 1i</b> — Drive 의 <code>phase1_signals/&lt;폴더&gt;/seeds/seed*_k*.json.gz</code> 에피소드 로그를 읽습니다. 이 로그는 저장소에 없습니다.</li>
+          <li><b>1j</b> — 1i 원본 파일을 읽어 SHA-256 을 확인한 뒤 두 곳만 바꿔 실행합니다. 해시가 다르면 멈춥니다. <span class="badge not_run" style="margin-left:4px">실행 전</span></li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>4. 테스트</h3>
+        <div class="code-block" id="cmd-test"></div>
+        <p class="muted" style="font-size:13px;margin:10px 0 0">build_data.py 의 H1 계산을 원본 셀의 함수(<code>_enrich</code>, <code>_bf</code>, <code>_lb</code>, <code>_boot</code>)와 직접 비교하고, 1i 코드 해시·PREREG 해시·데이터 파일 정합성을 확인합니다.</p>
+      </div>
+    </div>
+  </div></section>
+
+  <section class="rsec" id="code"><div class="wrap">
+    <div class="kicker">Code</div>
+    <h2>분석 코드 SHA-256</h2>
+    <div class="table-wrap" style="margin-top:14px"><table class="t" id="code-table"></table></div>
+    <h3 style="margin-top:26px">Drive 에만 있는 코드</h3>
+    <p class="muted" style="font-size:13px">아래 셀 코드는 Drive 메타데이터(이름·크기·수정 시각)만 확인했고 내용을 저장소에 넣지 않았습니다. 그래서 SHA-256 을 제공하지 않습니다.</p>
+    <div class="table-wrap" style="margin-top:10px"><table class="t" id="drive-table"></table></div>
+  </div></section>
+
+  <section class="rsec" id="prereg"><div class="wrap">
+    <div class="kicker">Pre-registration</div>
+    <h2>PREREG 해시</h2>
+    <div class="grid g2" style="margin-top:14px">
+      <div class="panel" id="prereg-1f"></div>
+      <div class="panel" id="prereg-1j"></div>
+    </div>
+  </div></section>
+
+  <section class="rsec" id="verify"><div class="wrap">
+    <div class="kicker">Verify in your browser</div>
+    <h2>브라우저에서 직접 검증</h2>
+    <p class="muted" style="max-width:78ch">아래 버튼은 이 사이트에 올라간 파일을 내려받아 <b>지금 이 브라우저에서</b> SHA-256 을 계산하고 기록값과 비교합니다 (Web Crypto API). 서버가 미리 계산한 값을 보여 주는 것이 아닙니다.</p>
+    <div class="grid g2" style="margin-top:14px">
+      <div class="panel">
+        <h3>자동 대조</h3>
+        <button class="btn sm primary no-print" type="button" id="verify-btn">모든 해시 다시 계산</button>
+        <div class="table-wrap" style="margin-top:12px"><table class="t" id="verify-table"></table></div>
+      </div>
+      <div class="panel">
+        <h3>내 파일 대조</h3>
+        <p class="muted" style="font-size:13px">가지고 있는 파일(예: Drive 에서 받은 <code>Paper5_Phase1i_cell.py</code>, 로컬의 <code>h1v2_*.jsonl</code>)을 고르면 기록된 해시 목록과 비교합니다. 파일은 업로드되지 않습니다.</p>
+        <input class="field no-print" type="file" id="file-in" multiple aria-label="대조할 파일 선택">
+        <div id="file-out" style="margin-top:12px"></div>
+      </div>
+    </div>
+  </div></section>
+
+  <section class="rsec" id="sources"><div class="wrap">
+    <div class="kicker">Sources</div>
+    <h2>원자료 파일</h2>
+    <div class="table-wrap" style="margin-top:14px"><table class="t" id="src-table"></table></div>
+  </div></section>
+
+  <section class="rsec" id="data"><div class="wrap">
+    <div class="kicker">Data</div>
+    <h2>생성 데이터</h2>
+    <p class="muted">사이트가 읽는 <code>data/*.json</code> 은 모두 <code>build_data.py</code> 가 위 원자료에서 만듭니다. 손으로 옮긴 숫자는 없습니다.</p>
+    <div id="data-list" class="tag-row" style="margin-top:12px"></div>
+    <p style="margin-top:14px"><a class="link-arrow" href="../statistics/#downloads">전체 다운로드 목록 →</a></p>
+  </div></section>
+
+  <section class="rsec" id="gaps"><div class="wrap">
+    <div class="kicker">Not reproducible yet</div>
+    <h2>지금은 재현·확인할 수 없는 것</h2>
+    <div class="prose" id="gap-list"></div>
+  </div></section>
+</main>
+<footer id="footer"></footer>
+<script src="../assets/js/core.js" defer></script>
+<script src="../assets/js/reproduce.js" defer></script>
+</body>
+</html>

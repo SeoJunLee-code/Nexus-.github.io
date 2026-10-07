@@ -19,7 +19,7 @@
       else if (k === "dataset") Object.assign(el.dataset, v);
       else el.setAttribute(k, v === true ? "" : v);
     }
-    for (const kid of kids.flat()) {
+    for (const kid of kids.flat(Infinity)) {
       if (kid === null || kid === undefined || kid === false) continue;
       el.append(kid instanceof Node ? kid : document.createTextNode(String(kid)));
     }
@@ -357,7 +357,7 @@
     const W = o.width || 560, rowH = o.rowH || 30, labW = o.labW ?? 170, top = 24, bottom = 26;
     const H = top + bottom + rows.length * rowH;
     const min = o.min ?? 0, max = o.max ?? 1, ref = o.ref ?? 0.5;
-    const x = (v) => labW + (W - labW - 16) * (v - min) / (max - min);
+    const x = (v) => labW + (W - labW - 58) * (v - min) / (max - min);
     const svg = s("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": o.aria || "forest plot" });
     const g = s("g", { class: "grid" });
     const ticks = o.ticks || [0, .25, .5, .75, 1];
@@ -382,7 +382,7 @@
         [r.ref.lo, r.ref.hi].forEach((e) => grp.append(s("line", { x1: x(Math.max(min, Math.min(max, e))), x2: x(Math.max(min, Math.min(max, e))), y1: y - 5, y2: y + 5, stroke: col, "stroke-width": 1.5 })));
       }
       grp.append(s("circle", { cx: x(Math.max(min, Math.min(max, r.ref.v))), cy: y, r: 5, fill: col, style: `filter:drop-shadow(0 0 6px ${col})` }));
-      grp.append(s("text", { x: W - 4, y: y - 8, "text-anchor": "end", style: `font-size:10.5px;fill:${css("--text-2")}` }, fmt(r.ref.v)));
+      grp.append(s("text", { x: W - 4, y: y + 4, "text-anchor": "end", style: `font-size:10.5px;fill:${css("--text-2")}` }, fmt(r.ref.v)));
       grp.addEventListener("mousemove", (e) => tip(`<b>${esc(r.label)}</b><br>${fmt(r.ref.v)} ${r.ref.lo != null ? `<span class="ci">${fmtCI(r.ref, 3)}</span>` : ""}${r.sub ? `<br><span class="faint">${esc(r.sub)}</span>` : ""}<br><span class="faint">클릭: 출처 보기</span>`, e.clientX, e.clientY));
       grp.addEventListener("mouseleave", () => tip(null));
       svg.append(grp);

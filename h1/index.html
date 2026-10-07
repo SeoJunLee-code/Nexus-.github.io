@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="ko" class="no-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>H1 · 다수결 역효과 — NEXUS</title>
+<meta name="description" content="H1: LLM 이 같은 수학 문제를 16번 풀 때 다수결이 오히려 틀리게 만드는가. Qwen2.5 1.5B/3B · MATH-500 · GSM8K 4조건 결과, 산술 하한, 구간별 분석, 설계 변경, 한계.">
+<meta name="theme-color" content="#03050d">
+<link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+KR:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/nexus.css">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("nexus-theme")||"dark"}catch(e){document.documentElement.dataset.theme="dark"}</script>
+</head>
+<body data-root="../" data-page="h1">
+<a class="skip" href="#main">본문으로 건너뛰기</a>
+<header id="nav"><noscript><nav class="wrap"><a href="../">NEXUS</a> · <a href="../paper5/">Paper 5</a> · <a href="../statistics/">Statistics</a></nav></noscript></header>
+
+<main id="main">
+  <section class="page-hero" aria-labelledby="h1-title">
+    <canvas class="bg-viz" id="bg-viz" aria-hidden="true"></canvas>
+    <div class="wrap">
+      <div class="crumb"><a href="../">← Home</a><span>/</span><span>Research</span><span>/</span><span>H1</span></div>
+      <div class="kicker">H1 · Reasoning · Self-consistency</div>
+      <div class="title-row" style="margin-top:10px">
+        <h1 class="h-display" id="h1-title" style="font-size:clamp(32px,4vw,52px)">다수결 역효과 <span class="faint" style="font-weight:400">(Backfire)</span></h1>
+        <span id="h1-badge"></span>
+      </div>
+      <p class="q">같은 수학 문제를 16번 풀게 하고 다수결로 답을 고르면, 정답이 섞여 나오는 문제에서 다수결이 오히려 틀리는 경우가 절반을 넘는가?</p>
+      <div class="tag-row"><span class="tag"># Majority vote</span><span class="tag"># Qwen2.5-Instruct</span><span class="tag"># MATH-500</span><span class="tag"># GSM8K</span><span class="tag"># Falsification</span></div>
+      <div class="meta-row" id="h1-meta"></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px" class="no-print">
+        <a class="btn sm" href="../data/h1.json" download><span aria-hidden="true">↓</span> h1.json</a>
+        <button class="btn sm ghost" type="button" id="cite-btn">인용 정보 복사</button>
+        <button class="btn sm ghost" type="button" id="print" onclick="window.print()">인쇄 / PDF</button>
+      </div>
+    </div>
+  </section>
+
+  <nav class="subnav no-print" aria-label="H1 섹션"><div class="wrap">
+    <a href="#question">Overview</a><a href="#method">Method</a><a href="#results">Results</a><a href="#floor">Backfire vs 하한</a><a href="#interval">구간별</a><a href="#analysis">Analysis</a><a href="#history">설계 변경</a><a href="#limits">Limitations</a><a href="#next">Next Question</a><a href="#provenance">Provenance</a>
+  </div></nav>
+
+  <!-- LAYER 1 -->
+  <section class="rsec" id="question"><div class="wrap">
+    <div class="layer-tag">Layer 1 · 누구나 읽는 설명</div>
+    <div class="grid g-12-5">
+      <div class="prose">
+        <div class="kicker">1. 무엇을 묻나</div>
+        <h2>여러 번 풀고 다수결 — 언제나 도움이 될까?</h2>
+        <p>AI 에게 같은 문제를 여러 번 풀게 하면 답이 조금씩 다르게 나옵니다. 그중 가장 많이 나온 답을 고르는 <strong>다수결(self-consistency)</strong>은 정확도를 올리는 흔한 방법입니다.</p>
+        <p>그런데 정답이 가끔만 나오는 어려운 문제에서는 <strong>틀린 답이 다수가 되어 다수결이 오히려 틀릴</strong> 수 있습니다. 이것을 여기서는 <strong>backfire(역효과)</strong>라고 부릅니다.</p>
+        <p><span class="hyp">가설</span>H1 은 “정답이 섞여 나오는 문제 가운데 다수결이 틀리는 비율이 50%를 넘는다”입니다. <span class="faint">(코드의 판정 규칙 <code>CI 하한 &gt; 0.50 → 지지</code> 에서 읽은 형태. 별도의 사전 고정 문서는 찾지 못했습니다.)</span></p>
+        <h3>왜 중요한가</h3>
+        <p><span class="interp">해석</span>다수결이 어디서 실패하는지 알면, 언제 표를 더 모으고 언제 다른 검증이 필요한지 판단할 수 있습니다.</p>
+        <h3>무슨 일이 있었나</h3>
+        <p id="h1-plain"></p>
+      </div>
+      <div class="panel" id="vote-demo">
+        <div class="panel-title"><div><h3>16표 실제 예시</h3><div class="sub">원자료의 문제별 표 수 그대로 (h1_problem_rows.json)</div></div></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+          <select class="field" id="demo-cond" aria-label="조건 선택"></select>
+          <div class="seg" role="group" aria-label="예시 종류"><button aria-pressed="true" data-k="backfire">다수결 틀림</button><button aria-pressed="false" data-k="majority_right">다수결 맞음</button></div>
+          <button class="btn sm ghost" id="demo-next" type="button">다른 문제 →</button>
+        </div>
+        <div id="demo-dots" style="display:grid;grid-template-columns:repeat(8,1fr);gap:10px;max-width:340px;margin:8px 0 14px" aria-live="polite"></div>
+        <div class="legend"><span><i class="dot" style="background:var(--green)"></i>정답</span><span><i class="dot" style="background:var(--rose)"></i>가장 많이 나온 오답</span><span><i class="dot" style="background:var(--text-3)"></i>다른 오답</span><span><i class="dot" style="background:transparent;border:1px dashed var(--text-3)"></i>답 없음/무효</span></div>
+        <p class="chart-desc" id="demo-text"></p>
+      </div>
+    </div>
+  </div></section>
+
+  <!-- LAYER 2 -->
+  <section class="rsec" id="method"><div class="wrap">
+    <div class="layer-tag">Layer 2 · 기술 상세</div>
+    <div class="kicker">2. Method</div>
+    <h2>실험 설계 — 코드에서 읽은 그대로</h2>
+    <div class="grid g2">
+      <div class="panel"><h3>생성 설정 (H1_STEP4_cell.py)</h3><div class="table-wrap" style="margin-top:12px"><table class="t" id="cfg-table"></table></div></div>
+      <div class="panel prose" style="max-width:none">
+        <h3 style="margin-top:0">정의</h3>
+        <ul>
+          <li><strong>답 추출</strong>: <code>\boxed{}</code> 또는 <code>####</code> 만 유효표. 마지막 숫자로 대체(lastnum)한 답은 무효표로 처리.</li>
+          <li><strong>p</strong>: 문제별 단일 샘플 정확도 = 정답 샘플 수 / 16.</li>
+          <li><strong>비축퇴 문제</strong>: 0 &lt; 정답 수 &lt; 16 (항상 맞거나 항상 틀리는 문제 제외).</li>
+          <li><strong>Backfire</strong>: 비축퇴 문제 중 다수결이 틀린 비율.</li>
+          <li><strong>산술 하한</strong>: 오답 수를 오답 종류 수로 나눠 올림한 값이 정답 수보다 크면, 어떻게 나뉘어도 다수결이 틀릴 수밖에 없음(1점, 같으면 0.5점). 그 평균.</li>
+          <li><strong>95% CI</strong>: 문제 단위 부트스트랩 10,000회, seed 0.</li>
+          <li><strong>판정</strong>: <span id="rule-text"></span></li>
+        </ul>
+      </div>
+    </div>
+  </div></section>
+
+  <section class="rsec" id="results"><div class="wrap">
+    <div class="kicker">3. Results</div>
+    <h2>4조건 결과</h2>
+    <p class="muted" style="max-width:76ch">각 수치를 누르면 출처(원자료 파일·계산식)가 열립니다. 반증은 실패가 아니라 정상적인 연구 결과로 표시합니다.</p>
+    <div class="table-wrap" style="margin:18px 0"><table class="t" id="res-table"></table></div>
+    <div class="grid g2">
+      <div class="panel"><div class="panel-title"><div><h3>Backfire 95% CI vs 판정선 0.50</h3><div class="sub">CI 전체가 0.50 왼쪽 → H1 반증</div></div></div><div class="chart" id="bf-forest"></div></div>
+      <div class="panel"><div class="panel-title"><div><h3>단일 샘플 vs 다수결 정확도</h3><div class="sub" id="acc-sub"></div></div></div><div class="chart" id="acc-bars"></div>
+        <div class="legend"><span><i style="background:var(--text-3)"></i>단일 샘플</span><span><i style="background:var(--blue)"></i>다수결(16)</span></div></div>
+    </div>
+  </div></section>
+
+  <section class="rsec" id="floor"><div class="wrap">
+    <div class="kicker">4. Backfire vs Arithmetic lower bound</div>
+    <h2>관측된 역효과 중 '피할 수 없던' 부분</h2>
+    <p class="muted" style="max-width:76ch">산술 하한은 표가 그렇게 나뉜 이상 다수결이 틀릴 수밖에 없던 비율입니다. 관측값과 하한의 차이(하한 초과분)가 다수결 규칙 자체가 만든 '추가' 역효과입니다.</p>
+    <div class="grid g-12-5" style="margin-top:16px">
+      <div class="panel"><div class="chart" id="floor-chart"></div>
+        <div class="legend"><span><i style="background:var(--magenta)"></i>관측 backfire</span><span><i style="background:var(--violet);opacity:.6"></i>산술 하한</span><span><i style="background:var(--rose)"></i>판정선 0.50</span></div></div>
+      <div class="panel"><h3>하한 초과분 (backfire − 하한)</h3><p class="faint" style="font-size:12.5px">95% CI, 부트스트랩 10,000회</p><div class="chart" id="gap-forest"></div></div>
+    </div>
+  </div></section>
+
+  <section class="rsec" id="interval"><div class="wrap">
+    <div class="kicker">5. Accuracy by interval</div>
+    <h2>정확도 구간별 backfire</h2>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:6px 0 14px"><label class="faint" for="int-cond" style="font-size:13px">조건</label><select class="field" id="int-cond"></select></div>
+    <div class="grid g-12-5">
+      <div class="panel"><div class="chart" id="int-chart"></div>
+        <div class="legend"><span><i style="background:var(--magenta)"></i>구간 backfire</span><span><i style="background:var(--text-2)"></i>관측 전체</span><span><i style="background:var(--violet)"></i>산술 하한</span><span><i style="background:var(--rose)"></i>판정선</span></div></div>
+      <div class="panel prose" id="int-notes" style="max-width:none"></div>
+    </div>
+  </div></section>
+
+  <section class="rsec" id="analysis"><div class="wrap">
+    <div class="kicker">6. Analysis</div>
+    <h2>HARD vs EASY, 추출 품질, 비교</h2>
+    <div class="grid g2">
+      <div class="panel"><h3>HARD(MATH-500) − EASY(GSM8K) backfire 차이</h3><p class="faint" style="font-size:12.5px">원본 코드와 같은 쌍 · 독립 부트스트랩 10,000회 seed 0</p><div class="table-wrap" style="margin-top:10px"><table class="t" id="pair-table"></table></div></div>
+      <div class="panel"><h3>추출·교란 점검</h3><div class="table-wrap" style="margin-top:10px"><table class="t" id="qc-table"></table></div></div>
+    </div>
+    <div class="panel" style="margin-top:18px" id="compare-box">
+      <div class="panel-title"><div><h3>Compare Mode</h3><div class="sub">두 조건을 나란히 — 값은 h1.json 에서</div></div></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px"><select class="field" id="cmp-a" aria-label="비교 A"></select><select class="field" id="cmp-b" aria-label="비교 B"></select></div>
+      <div class="compare" id="cmp-out"></div>
+    </div>
+  </div></section>
+
+  <section class="rsec" id="history"><div class="wrap">
+    <div class="kicker">7. Design / revision history</div>
+    <h2>설계 변경 기록</h2>
+    <p class="muted" style="max-width:76ch">파일명과 생성 시각(Google Drive 메타데이터)으로 확인되는 사실만 적습니다. 변경 이유를 적은 문서는 이 저장소에 없습니다.</p>
+    <ul class="tl" id="h1-history" style="margin-top:18px"></ul>
+  </div></section>
+
+  <section class="rsec" id="limits"><div class="wrap">
+    <div class="kicker">8. Limitations</div>
+    <h2>한계</h2>
+    <div class="prose" id="limits-list"></div>
+  </div></section>
+
+  <section class="rsec" id="next"><div class="wrap">
+    <div class="kicker">9. Next question</div>
+    <h2>다음 질문</h2>
+    <div class="prose">
+      <p><span class="fact">사실</span>H1_STEP4_cell.py 에는 STEP 4 이후의 계획이 기록되어 있지 않습니다. 연구자가 정한 다음 질문은 아직 문서로 확인되지 않았습니다.</p>
+      <p><span class="interp">해석</span><span class="faint">(NEXUS 편집 메모 — 연구자의 기록 아님)</span> 위 구간별 결과에서 backfire 는 정확도가 낮은 구간에 몰려 있습니다. 이 구간을 더 많은 표나 더 많은 문제로 다시 보는 것이 자연스러운 후속 질문이 될 수 있습니다.</p>
+    </div>
+  </div></section>
+
+  <section class="rsec" id="provenance"><div class="wrap">
+    <div class="kicker">Evidence</div>
+    <h2>Data Provenance</h2>
+    <div id="prov-box"></div>
+  </div></section>
+</main>
+<footer id="footer"></footer>
+<script src="../assets/js/core.js" defer></script>
+<script src="../assets/js/viz.js" defer></script>
+<script src="../assets/js/h1.js" defer></script>
+</body>
+</html>

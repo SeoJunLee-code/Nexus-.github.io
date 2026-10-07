@@ -29,6 +29,8 @@ from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
 
+# Paper 5 page section ids (1e shares the 1f section, 1h shares the 1g section)
+P5_ANCHOR = {"1e": "phase-1f", "1h": "phase-1g"}
 ROOT = Path(__file__).resolve().parent
 RAW = ROOT / "data_raw"
 CODE = ROOT / "code"
@@ -165,7 +167,9 @@ H1_RE_FIELDS = ("problem_id", "answers", "correct_flags", "maj_correct")  # 원�
 def h1_rows_from_jsonl(path: Path):
     """원본 _load + _enrich 와 같은 규칙으로 문제별 집계값을 만든다 (답 텍스트는 버린다)."""
     recs, bad = [], 0
-    for line in open(path, encoding="utf-8"):
+    with open(path, encoding="utf-8") as fh:
+        lines = fh.readlines()
+    for line in lines:
         s = line.strip()
         if not s:
             continue
@@ -733,7 +737,7 @@ def build_timeline(manifest, h1, p5):
         st = h1["project_status"]
         add(last, "h1", "falsification", f"H1 판정: {st['label']}", st["why"],
             "h1_problem_rows.json → build_data.py (원본 판정 규칙)", "h1/#results")
-        add(last, "h1", "next", "다음 질문", "H1_STEP4_cell.py 에는 4단계 이후 계획이 기록되어 있지 않음 — 다음 질문은 아직 문서화되지 않음.",
+        add(last, "h1", "next", "H1 다음 질문 — 아직 기록 없음", "H1_STEP4_cell.py 에는 4단계 이후 계획이 기록되어 있지 않음 — 다음 질문은 아직 문서화되지 않음.",
             "H1_STEP4_cell.py", "h1/#next")
 
     # Paper 5
@@ -747,7 +751,7 @@ def build_timeline(manifest, h1, p5):
     if "Paper5_Phase1b_cell.py" in m:
         add(m["▶ Paper5_Phase1b_실행.ipynb"]["modified"] if "▶ Paper5_Phase1b_실행.ipynb" in m else m["Paper5_Phase1b_cell.py"]["created"],
             "paper5", "experiment", "Phase 1b 실행", "노트북·코드 파일만 확인됨 (결과 JSON 은 이 저장소에 없음).",
-            "drive_manifest.json", "paper5/#timeline")
+            "drive_manifest.json", "paper5/#narrative")
     text = {
         "1c": ("experiment", "1c — ① 고리(재방문) 통제 · ② 확률 정책 로깅",
                "신호 후보 24개를 표준 표본과 고리통제 표본에서 비교하고, 결정론 정책의 재방문-실패 관계를 진단."),
@@ -760,7 +764,7 @@ def build_timeline(manifest, h1, p5):
     }
     for pid, (typ, title, det) in text.items():
         if ph.get(pid, {}).get("available"):
-            add(p5date(pid), "paper5", typ, title, det, f"analysis_phase{pid}.json", f"paper5/#phase-{pid}")
+            add(p5date(pid), "paper5", typ, title, det, f"analysis_phase{pid}.json", "paper5/#" + P5_ANCHOR.get(pid, f"phase-{pid}"))
     if "1i" in ph and ph["1i"].get("data"):
         lab = next((b["label"] for b in ph["1i"]["data"]["B"] if b["key"] == "run_confirm_det|d0|lf"), None)
         if lab:

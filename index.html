@@ -123,7 +123,7 @@ python3 build_data.py
 <span class="c"># 3. 커밋된 data/ 가 원자료와 같은지 확인</span>
 python3 build_data.py --check
 <span class="c"># 4. 테스트 (H1 계산식 원본 대조 · 숫자 하드코딩 검사)</span>
-python3 tests/test_build.py
+python3 -m unittest discover -s tests -v
 <span class="c"># 5. 로컬 미리보기</span>
 python3 -m http.server 8000</div>
           <hr class="divider">
