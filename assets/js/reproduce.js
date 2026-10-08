@@ -20,9 +20,9 @@
     return parts.join("");
   }
 
-  codeBlock($("#cmd-build"), ["cd nexus", "# (선택) H1 원자료를 로컬에 둠: data_raw/h1v2_*.jsonl", "python3 build_data.py", "python3 build_data.py --check"]);
-  codeBlock($("#cmd-serve"), ["cd nexus", "python3 -m http.server 8000", "# 브라우저에서 http://localhost:8000/"]);
-  codeBlock($("#cmd-test"), ["cd nexus", "python3 -m unittest discover -s tests -v"]);
+  codeBlock($("#cmd-build"), ["git clone https://github.com/SeoJunLee-code/Nexus-.github.io", "cd Nexus-.github.io", "# (선택) H1 원자료를 로컬에 둠: data_raw/h1v2_*.jsonl", "python3 build_data.py", "python3 build_data.py --check"]);
+  codeBlock($("#cmd-serve"), ["cd Nexus-.github.io", "python3 -m http.server 8000", "# 브라우저에서 http://localhost:8000/"]);
+  codeBlock($("#cmd-test"), ["cd Nexus-.github.io", "python3 -m unittest discover -s tests -v"]);
 
   Promise.all([load("provenance.json"), load("research.json"), load("paper5.json")]).then(([PV, R, P5]) => {
     const cell = (lab, val, mono) => h("div", {}, h("div", { class: "lab" }, lab), h("div", { class: "val" + (mono ? " mono" : "") }, val));

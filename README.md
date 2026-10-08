@@ -15,7 +15,7 @@ H1(다수결 역효과)과 Paper 5(내부 신호 모니터링) 두 연구의 기
 ## 구조
 
 ```
-nexus/
+Nexus-.github.io/
 ├─ index.html            Home (연구 목록·필터, 1i 분해 + 3D 증거 공간, THE JOURNEY, 연구 지도, 1c 실험 큐브·타일, 실패 체인, 검증)
 ├─ h1/                   H1 · 다수결 역효과
 ├─ paper5/               Paper 5 · 내부 신호로 성공 예측하기 (1c → 1j)
@@ -42,7 +42,7 @@ nexus/
 ## 데이터 다시 만들기 · 검사
 
 ```bash
-cd nexus
+cd Nexus-.github.io
 python3 build_data.py            # data/*.json 재생성
 python3 build_data.py --check    # 커밋된 data/ 가 원자료에서 다시 만든 결과와 같은지 (빌드 시각 제외)
 python3 -m unittest discover -s tests -v
@@ -60,7 +60,7 @@ python3 -m unittest discover -s tests -v
 ## 로컬에서 보기
 
 ```bash
-cd nexus
+cd Nexus-.github.io
 python3 -m http.server 8000      # http://localhost:8000/
 ```
 
@@ -68,13 +68,12 @@ python3 -m http.server 8000      # http://localhost:8000/
 
 ## 배포 (GitHub Pages)
 
-모든 링크가 상대 경로라 폴더째 옮기면 그대로 동작합니다. 지금은 `saenggiro-sns` 저장소의 `nexus/` 하위 폴더에 있으므로 다음 중 하나가 필요합니다.
+이 저장소(`SeoJunLee-code/Nexus-.github.io`)의 `main` 브랜치 루트가 그대로 사이트입니다. 모든 링크가 상대 경로라 하위 경로에서도 동작합니다.
 
-- **새 저장소**: `nexus/` 의 내용을 새 저장소 루트에 두고 Settings → Pages → `main` / `(root)`.
-- **이 저장소에서**: Pages 의 "Deploy from a branch" 는 루트나 `/docs` 만 고를 수 있으므로, `nexus/` 를 `docs/` 로 옮기거나 GitHub Actions(`actions/upload-pages-artifact` 의 `path: nexus`)로 배포.
-
-비공개 저장소의 Pages 는 GitHub 유료 플랜(Pro/Team/Enterprise)에서만 됩니다. 무료 계정이면 공개 저장소여야 합니다.
-공개하기 전에 `data_raw/` 와 `code/` 에 공개해도 되는 것만 있는지 다시 확인하세요.
+- 주소: https://seojunlee-code.github.io/Nexus-.github.io/
+- 설정: Settings → Pages → Build and deployment → Source `Deploy from a branch`, Branch `main` / `/ (root)`
+- `.nojekyll` 이 있어 Jekyll 처리 없이 파일이 그대로 게시됩니다.
+- 공개 저장소이므로 `data_raw/` 의 분석 JSON, `code/` 의 셀 코드도 공개됩니다. H1 원자료 `h1v2_*.jsonl` 은 `.gitignore` 로 제외되어 올라가지 않습니다.
 
 ## 데이터 메모
 
